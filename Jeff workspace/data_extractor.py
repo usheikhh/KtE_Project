@@ -123,6 +123,40 @@ class DataExtractor:
         print(f"Missing values after: {self.df.isna().sum().sum()}")
         
         return self.df
+
+    def convert_date_column(self, col='Date', set_index=True, inplace=True, errors='coerce'):
+        """
+        Convert a column in `self.df` to datetime dtype and optionally set it as the index.
+
+        Parameters
+        ----------
+        col : str
+            Column name to convert (default 'Date').
+        set_index : bool
+            If True, set the converted column as the DataFrame index.
+        inplace : bool
+            If True, replace the existing index/column in-place when setting the index.
+        errors : {'raise', 'coerce', 'ignore'}
+            How to handle parsing errors (passed to `pd.to_datetime`).
+
+        Returns
+        -------
+        pd.DataFrame
+            The dataframe with the converted date column (and index if requested).
+        """
+        if self.df is None:
+            raise ValueError("No data loaded. Call load_data() first.")
+
+        if col not in self.df.columns:
+            raise KeyError(f"Column {col!r} not found in dataframe columns: {list(self.df.columns)}")
+
+        # Convert the column to datetime (coerce invalid values to NaT by default)
+        self.df[col] = pd.to_datetime(self.df[col], errors=errors)
+
+        if set_index:
+            self.df.set_index(col, inplace=inplace)
+
+        return self.df
     
     def get_data(self):
         """

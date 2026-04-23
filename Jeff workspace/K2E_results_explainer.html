@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>K2E Model Results Explainer</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --paper: #fffaf2;
+      --ink: #1f1c18;
+      --muted: #6b6258;
+      --line: #d9cdbd;
+      --accent: #b84c2a;
+      --accent-soft: #f5d8ca;
+      --teal: #1f6f78;
+      --teal-soft: #d8ecee;
+      --gold: #a77d22;
+      --gold-soft: #f4e7be;
+      --good: #1d6b3a;
+      --good-soft: #d8f0df;
+      --warn: #8a3b12;
+      --warn-soft: #fde0d1;
+      --shadow: 0 18px 40px rgba(58, 40, 18, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(184, 76, 42, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(31, 111, 120, 0.12), transparent 24%),
+        linear-gradient(180deg, #f8f1e6 0%, #efe4d3 100%);
+      line-height: 1.55;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 36px 20px 72px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(255, 250, 242, 0.96), rgba(252, 241, 228, 0.96));
+      border: 1px solid rgba(184, 76, 42, 0.14);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 34px 30px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -60px auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(31, 111, 120, 0.16), transparent 70%);
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 12px;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 4vw, 3.6rem);
+      letter-spacing: -0.03em;
+      max-width: 11ch;
+    }
+
+    h2 {
+      font-size: 1.55rem;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    .lede {
+      max-width: 70ch;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .hero-grid,
+    .grid-3,
+    .grid-2 {
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero-grid {
+      grid-template-columns: 1.4fr 1fr;
+      margin-top: 22px;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 18px 16px;
+    }
+
+    .metric-card {
+      min-height: 100%;
+    }
+
+    .metric-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      letter-spacing: 0.01em;
+      border: 1px solid transparent;
+    }
+
+    .pill.good {
+      background: var(--good-soft);
+      color: var(--good);
+      border-color: rgba(29, 107, 58, 0.16);
+    }
+
+    .pill.warn {
+      background: var(--warn-soft);
+      color: var(--warn);
+      border-color: rgba(138, 59, 18, 0.15);
+    }
+
+    .pill.neutral {
+      background: #eee5d8;
+      color: #584f45;
+      border-color: rgba(88, 79, 69, 0.12);
+    }
+
+    .section {
+      margin-top: 24px;
+    }
+
+    .section-head {
+      margin-bottom: 14px;
+    }
+
+    .summary-card {
+      border-top: 4px solid var(--accent);
+    }
+
+    .summary-card.teal {
+      border-top-color: var(--teal);
+    }
+
+    .summary-card.gold {
+      border-top-color: var(--gold);
+    }
+
+    .summary-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255, 250, 242, 0.75);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      font-size: 0.95rem;
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid rgba(217, 205, 189, 0.8);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: rgba(244, 231, 204, 0.6);
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #53473a;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td.best-rmse {
+      background: var(--good-soft);
+      font-weight: 700;
+      color: var(--good);
+    }
+
+    td.best-da {
+      background: var(--gold-soft);
+      font-weight: 700;
+      color: #73550f;
+    }
+
+    td.beats-naive {
+      background: var(--teal-soft);
+      color: #0e4d54;
+      font-weight: 700;
+    }
+
+    .model-tag {
+      display: inline-block;
+      min-width: 48px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      text-align: center;
+      background: #efe7db;
+      color: #5f5448;
+    }
+
+    .callout {
+      padding: 18px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(31, 111, 120, 0.08), rgba(255, 250, 242, 0.88));
+      border: 1px solid rgba(31, 111, 120, 0.16);
+    }
+
+    .quote {
+      font-size: 1.05rem;
+      font-style: italic;
+      margin-bottom: 10px;
+    }
+
+    .feature-list,
+    .plain-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .feature-list li,
+    .plain-list li {
+      margin-bottom: 8px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .regime-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .regime-card {
+      min-height: 100%;
+    }
+
+    .regime-card h3 {
+      margin-bottom: 10px;
+    }
+
+    .footer-note {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 0.9em;
+      background: rgba(87, 79, 67, 0.08);
+      padding: 1px 5px;
+      border-radius: 6px;
+    }
+
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .regime-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .wrap {
+        padding: 20px 14px 48px;
+      }
+
+      .hero {
+        padding: 24px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>K2E Model Results, Explained</h1>
+      <p class="lede">
+        This report translates the cross-validated output from your three-layer model stack into a business-readable narrative.
+        The main idea is simple: lower <strong>RMSE</strong> means better magnitude forecasting, higher <strong>DA</strong> means better direction calls,
+        and the two do not always move together.
+      </p>
+
+      <div class="hero-grid">
+        <div class="card summary-card">
+          <h2>Executive Read</h2>
+          <p><strong>Layer 2a is the weakest model almost everywhere.</strong> Splitting the sample only by high/low volatility does not seem rich enough for these markets.</p>
+          <p><strong>Layer 2b is the most stable upgrade.</strong> It rarely wins by a lot, but it usually matches or slightly improves on Layer 1 RMSE without introducing much extra instability.</p>
+          <p><strong>Layer 3 is the most interesting but also the most uneven.</strong> It produces the best RMSE in several short-horizon settings, especially for <strong>TTF h=1, TTF h=3, POWER h=1, POWER h=5, and EUA h=1</strong>, but it sometimes gives up direction accuracy or deteriorates at longer horizons.</p>
+          <div class="pill-row">
+            <span class="pill good">Best short-horizon upside: Layer 3</span>
+            <span class="pill neutral">Most consistent baseline: Layer 1 / Layer 2b</span>
+            <span class="pill warn">Most consistently weak: Layer 2a</span>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card metric-card">
+            <strong>RMSE</strong>
+            <p class="small">Lower is better. This is your best metric when you care about how close the forecasted return size is to the realized move.</p>
+          </div>
+          <div class="card metric-card">
+            <strong>DA</strong>
+            <p class="small">Higher is better. This is your best metric when you care about getting the sign right, even if the forecast magnitude is imperfect.</p>
+          </div>
+          <div class="card metric-card">
+            <strong><code>vs Naive</code></strong>
+            <p class="small">Negative is good here. Your code computes <code>(model RMSE - naive RMSE) / naive RMSE</code>, so a negative number means the model beats a zero-return benchmark.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>What Stands Out</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card summary-card">
+          <h3>1. TTF prefers richer structure only at short horizons</h3>
+          <p>
+            For TTF, Layer 3 wins on RMSE at <strong>h=1</strong> and <strong>h=3</strong>, which suggests regime structure matters for near-term gas forecasting.
+            But by <strong>h=5</strong>, the regime model loses its edge and Layer 2b becomes the best magnitude forecaster.
+          </p>
+          <p class="small">Translation: regimes help in the short run, but the long run may be too noisy or too mean-reverting for the Markov layer to hold up.</p>
+        </div>
+
+        <div class="card summary-card teal">
+          <h3>2. POWER is where Layer 3 looks most promising</h3>
+          <p>
+            Layer 3 is best on both RMSE and DA at <strong>POWER h=1</strong> and <strong>POWER h=5</strong>.
+            That is a strong sign that electricity returns are reacting to latent operating regimes that a linear baseline only partially captures.
+          </p>
+          <p class="small">POWER h=3 is the exception, where Layer 1 or 2b still looks safer.</p>
+        </div>
+
+        <div class="card summary-card gold">
+          <h3>3. EUA shows a classic magnitude-vs-direction tradeoff</h3>
+          <p>
+            For EUA, Layer 3 is excellent at <strong>h=1</strong>, but at <strong>h=3</strong> and <strong>h=5</strong> it tends to improve direction accuracy more than RMSE.
+            That means it may be useful for directional positioning even when it is not the best continuous-value forecaster.
+          </p>
+          <p class="small">If the objective is trading sign, Layer 3 becomes more attractive than if the objective is point-forecast precision.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Quick Recommendation by Use Case</h2>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>If you care most about forecast magnitude</h3>
+          <ul class="plain-list">
+            <li><strong>TTF:</strong> use <code>L3</code> for <code>h=1</code> and <code>h=3</code>, then move to <code>L2b</code> at <code>h=5</code>.</li>
+            <li><strong>POWER:</strong> use <code>L3</code> for <code>h=1</code> and <code>h=5</code>, but <code>L2b</code> or <code>L1</code> for <code>h=3</code>.</li>
+            <li><strong>EUA:</strong> use <code>L3</code> for <code>h=1</code>, then <code>L1</code> or <code>L2b</code> for longer horizons.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>If you care most about getting direction right</h3>
+          <ul class="plain-list">
+            <li><strong>TTF:</strong> stay with <code>L1</code> or <code>L2b</code>. Layer 3 lowers RMSE but hurts sign accuracy at <code>h=1</code>.</li>
+            <li><strong>POWER:</strong> <code>L3</code> is especially compelling at <code>h=1</code> and <code>h=5</code>.</li>
+            <li><strong>EUA:</strong> <code>L3</code> is the best directional model in all three horizons, even when it is not always the best RMSE model.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Market Scorecards</h2>
+        <p class="small">Green cells mark the lowest RMSE. Gold cells mark the highest DA. Blue cells mean the model beats the naive benchmark on RMSE.</p>
+      </div>
+      <div id="tables"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>What the Coefficients Are Saying</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <h3>TTF Layer 1</h3>
+          <ul class="feature-list">
+            <li><strong>Own lags matter most:</strong> <code>LR_TTF_lag1</code> and <code>LR_TTF_lag3</code> suggest short-memory dynamics.</li>
+            <li><strong>Volatility matters:</strong> <code>RVOL20_TTF</code> has one of the strongest coefficients, which is typical in stressed gas markets.</li>
+            <li><strong>Fundamentals still bite:</strong> storage deviation and Norway gas flows are meaningful, so this is not just a pure technical model.</li>
+            <li><strong>Interpretation:</strong> TTF appears to be a blend of momentum, mean reversion, and physical-balance signals.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>POWER Layer 1</h3>
+          <ul class="feature-list">
+            <li><strong>Volatility dominates:</strong> <code>RVOL20_POWER</code> and <code>RVOL5_POWER</code> are the biggest drivers.</li>
+            <li><strong>Fuel linkage is still present:</strong> coal and lagged power returns remain relevant.</li>
+            <li><strong>Weather/renewables matter:</strong> solar and warm-season temperature effects enter the top feature set.</li>
+            <li><strong>Interpretation:</strong> power returns look like a volatility-driven market with fuel and weather overlays.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>EUA Layer 1</h3>
+          <ul class="feature-list">
+            <li><strong>Cross-market spillovers dominate:</strong> lagged TTF, lagged power, and coal-switch variables all appear in the top coefficients.</li>
+            <li><strong>Geopolitical flow shocks matter:</strong> <code>D_RUS_PIPE</code> still shows up in the top set.</li>
+            <li><strong>Interpretation:</strong> EUA is being priced less like an isolated carbon contract and more like a system-level energy balance variable.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>What the Regime Model Is Telling You</h2>
+      </div>
+      <div class="regime-grid">
+        <div class="card regime-card">
+          <h3>TTF Regimes</h3>
+          <p><strong>Normal state is almost absent.</strong> Your sample spends only <strong>0.6%</strong> of the time there, while dual-stress and gas-crisis states dominate.</p>
+          <p><strong>Gas crisis is persistent.</strong> Once in crisis, the model stays there with about <strong>87.5%</strong> probability next period.</p>
+          <p><strong>Interpretation:</strong> for 2021-2024, the gas market is not behaving like a calm market with rare disruptions. Stress is the base case.</p>
+        </div>
+
+        <div class="card regime-card">
+          <h3>POWER Regimes</h3>
+          <p><strong>Two broad states dominate.</strong> Normal and dual-stress each account for roughly half the sample, while the most extreme state is rare.</p>
+          <p><strong>Interpretation:</strong> the power market seems to switch between ordinary and elevated-stress conditions more than it lives in full crisis.</p>
+          <p><strong>Why this matters:</strong> it helps explain why Layer 3 works especially well for POWER at some horizons.</p>
+        </div>
+
+        <div class="card regime-card">
+          <h3>EUA Regimes</h3>
+          <p><strong>Crisis is rare but meaningful.</strong> The crisis state appears only <strong>3.5%</strong> of the time, but it carries a much higher variance.</p>
+          <p><strong>Interpretation:</strong> carbon behaves like a market that is usually in normal or moderately stressed conditions, with occasional high-variance bursts.</p>
+          <p><strong>Why this matters:</strong> that pattern is consistent with Layer 3 improving directional calls without always improving point forecast RMSE.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="callout">
+        <p class="quote">The single most important caveat in these results is that “better RMSE” and “better trading usefulness” are not the same thing.</p>
+        <p>
+          Several Layer 3 runs improve RMSE while hurting direction accuracy, and some EUA results do the opposite.
+          That means your final model choice should be tied to the decision problem:
+          <strong>price forecasting, risk estimation, or directional trading signal generation.</strong>
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid-2">
+        <div class="card">
+          <h3>Suggested language for your write-up</h3>
+          <p>
+            “The regime-aware Markov-switching specification provides the largest gains in short-horizon gas and power forecasting,
+            while the GARCH-weighted Ridge offers the most stable incremental improvement over the linear baseline.
+            A simple volatility split performs poorly, indicating that a binary high/low volatility classification is too crude to capture the relevant structural variation.”
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>What I would say in plain English</h3>
+          <p>
+            “If we want a dependable workhorse, Layer 2b is the safest enhancement.
+            If we want the model with the most upside, especially for short-run TTF, POWER, and EUA, Layer 3 is the one to study further.
+            But Layer 3 needs objective-specific validation because its gains in forecast magnitude do not always translate into better sign prediction.”
+          </p>
+        </div>
+      </div>
+      <p class="footer-note">
+        Source: values pasted from your run output. This HTML is a narrative wrapper around those reported cross-validation metrics and regime summaries.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    const results = {
+      TTF: [
+        { h: 1, layer: "L1", rmse: 0.05761, da: 53.3, vsNaive: 0.7, note: "alpha = 100" },
+        { h: 1, layer: "L2a", rmse: 0.05886, da: 52.3, vsNaive: 2.9, note: "lo = 748, hi = 250" },
+        { h: 1, layer: "L2b", rmse: 0.05750, da: 53.0, vsNaive: 0.5, note: "GARCH(1,1)" },
+        { h: 1, layer: "L3", rmse: 0.05621, da: 45.2, vsNaive: -1.8, note: "5 features" },
+        { h: 3, layer: "L1", rmse: 0.10526, da: 54.2, vsNaive: 2.7, note: "alpha = 100" },
+        { h: 3, layer: "L2a", rmse: 0.10889, da: 51.4, vsNaive: 6.2, note: "lo = 747, hi = 249" },
+        { h: 3, layer: "L2b", rmse: 0.10457, da: 54.0, vsNaive: 2.0, note: "GARCH(1,1)" },
+        { h: 3, layer: "L3", rmse: 0.10077, da: 51.8, vsNaive: -1.7, note: "5 features" },
+        { h: 5, layer: "L1", rmse: 0.13537, da: 51.5, vsNaive: 1.8, note: "alpha = 100" },
+        { h: 5, layer: "L2a", rmse: 0.14020, da: 50.8, vsNaive: 5.5, note: "lo = 745, hi = 249" },
+        { h: 5, layer: "L2b", rmse: 0.13504, da: 50.7, vsNaive: 1.6, note: "GARCH(1,1)" },
+        { h: 5, layer: "L3", rmse: 0.14305, da: 49.6, vsNaive: 7.6, note: "5 features" }
+      ],
+      POWER: [
+        { h: 1, layer: "L1", rmse: 0.05803, da: 49.4, vsNaive: 0.9, note: "alpha = 100" },
+        { h: 1, layer: "L2a", rmse: 0.06182, da: 48.9, vsNaive: 7.5, note: "lo = 748, hi = 250" },
+        { h: 1, layer: "L2b", rmse: 0.05785, da: 49.4, vsNaive: 0.6, note: "GARCH(1,1)" },
+        { h: 1, layer: "L3", rmse: 0.05687, da: 51.8, vsNaive: -1.1, note: "5 features" },
+        { h: 3, layer: "L1", rmse: 0.10367, da: 52.0, vsNaive: 1.7, note: "alpha = 100" },
+        { h: 3, layer: "L2a", rmse: 0.10710, da: 49.3, vsNaive: 5.1, note: "lo = 747, hi = 249" },
+        { h: 3, layer: "L2b", rmse: 0.10325, da: 50.1, vsNaive: 1.3, note: "GARCH(1,1)" },
+        { h: 3, layer: "L3", rmse: 0.10888, da: 51.1, vsNaive: 6.8, note: "5 features" },
+        { h: 5, layer: "L1", rmse: 0.13577, da: 48.1, vsNaive: 2.5, note: "alpha = 100" },
+        { h: 5, layer: "L2a", rmse: 0.14250, da: 45.8, vsNaive: 7.6, note: "lo = 745, hi = 249" },
+        { h: 5, layer: "L2b", rmse: 0.13514, da: 47.5, vsNaive: 2.1, note: "GARCH(1,1)" },
+        { h: 5, layer: "L3", rmse: 0.13272, da: 55.0, vsNaive: 0.2, note: "5 features" }
+      ],
+      EUA: [
+        { h: 1, layer: "L1", rmse: 0.02774, da: 47.7, vsNaive: 2.2, note: "alpha = 100" },
+        { h: 1, layer: "L2a", rmse: 0.02822, da: 50.1, vsNaive: 4.0, note: "lo = 748, hi = 250" },
+        { h: 1, layer: "L2b", rmse: 0.02770, da: 49.3, vsNaive: 2.1, note: "GARCH(1,1)" },
+        { h: 1, layer: "L3", rmse: 0.02610, da: 51.1, vsNaive: -3.8, note: "5 features" },
+        { h: 3, layer: "L1", rmse: 0.04875, da: 47.3, vsNaive: 4.4, note: "alpha = 100" },
+        { h: 3, layer: "L2a", rmse: 0.05134, da: 46.5, vsNaive: 9.9, note: "lo = 747, hi = 249" },
+        { h: 3, layer: "L2b", rmse: 0.04889, da: 45.8, vsNaive: 4.7, note: "GARCH(1,1)" },
+        { h: 3, layer: "L3", rmse: 0.04999, da: 51.1, vsNaive: 7.0, note: "5 features" },
+        { h: 5, layer: "L1", rmse: 0.06427, da: 47.2, vsNaive: 4.7, note: "alpha = 100" },
+        { h: 5, layer: "L2a", rmse: 0.06757, da: 49.0, vsNaive: 10.1, note: "lo = 745, hi = 249" },
+        { h: 5, layer: "L2b", rmse: 0.06427, da: 47.4, vsNaive: 4.7, note: "GARCH(1,1)" },
+        { h: 5, layer: "L3", rmse: 0.06888, da: 54.6, vsNaive: 12.2, note: "5 features" }
+      ]
+    };
+
+    function renderTable(market, rows) {
+      const horizonGroups = [1, 3, 5].map(h => rows.filter(r => r.h === h));
+      const bestRmse = new Set();
+      const bestDa = new Set();
+      const beatsNaive = new Set();
+
+      horizonGroups.forEach(group => {
+        const minRmse = Math.min(...group.map(r => r.rmse));
+        const maxDa = Math.max(...group.map(r => r.da));
+        group.forEach(r => {
+          const key = `${r.h}-${r.layer}`;
+          if (Math.abs(r.rmse - minRmse) < 1e-12) bestRmse.add(key);
+          if (Math.abs(r.da - maxDa) < 1e-12) bestDa.add(key);
+          if (r.vsNaive < 0) beatsNaive.add(key);
+        });
+      });
+
+      const wrapper = document.createElement("section");
+      wrapper.className = "card";
+      wrapper.innerHTML = `
+        <h3>${market}</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Horizon</th>
+                <th>Layer</th>
+                <th>RMSE</th>
+                <th>Direction Accuracy</th>
+                <th>vs Naive</th>
+                <th>Reading</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => {
+                const key = `${r.h}-${r.layer}`;
+                const rmseClass = bestRmse.has(key) ? "best-rmse" : "";
+                const daClass = bestDa.has(key) ? "best-da" : "";
+                const naiveClass = beatsNaive.has(key) ? "beats-naive" : "";
+                let reading = "";
+                if (bestRmse.has(key) && bestDa.has(key)) {
+                  reading = "Best on both metrics for this horizon.";
+                } else if (bestRmse.has(key)) {
+                  reading = "Best magnitude forecast for this horizon.";
+                } else if (bestDa.has(key)) {
+                  reading = "Best sign / direction model for this horizon.";
+                } else if (r.layer === "L2a") {
+                  reading = "Mostly a weaker comparator in this run.";
+                } else if (r.layer === "L2b") {
+                  reading = "Stable incremental variant of the baseline.";
+                } else if (r.layer === "L1") {
+                  reading = "Strong benchmark and often hard to beat.";
+                } else {
+                  reading = "Regime-aware model with upside but uneven stability.";
+                }
+                return `
+                  <tr>
+                    <td>h=${r.h}</td>
+                    <td><span class="model-tag">${r.layer}</span></td>
+                    <td class="${rmseClass}">${r.rmse.toFixed(5)}</td>
+                    <td class="${daClass}">${r.da.toFixed(1)}%</td>
+                    <td class="${naiveClass}">${r.vsNaive > 0 ? "+" : ""}${r.vsNaive.toFixed(1)}%</td>
+                    <td>${reading}</td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+      return wrapper;
+    }
+
+    const tablesHost = document.getElementById("tables");
+    Object.entries(results).forEach(([market, rows]) => {
+      tablesHost.appendChild(renderTable(market, rows));
+    });
+  </script>
+</body>
+</html>

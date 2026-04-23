@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>K2E Model Explainer</title>
+  <style>
+    :root {
+      --bg: #f5f1e8;
+      --paper: #fffaf3;
+      --ink: #1e1d1a;
+      --muted: #676056;
+      --line: #ddd2c1;
+      --rust: #af4f2c;
+      --rust-soft: #f5ddd2;
+      --teal: #1f6e72;
+      --teal-soft: #dceef0;
+      --gold: #9b7a1a;
+      --gold-soft: #f3e8bd;
+      --green: #2f6a3b;
+      --green-soft: #dff0e2;
+      --shadow: 0 18px 40px rgba(54, 39, 22, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top left, rgba(175, 79, 44, 0.12), transparent 25%),
+        radial-gradient(circle at top right, rgba(31, 110, 114, 0.10), transparent 22%),
+        linear-gradient(180deg, #f8f2e8 0%, #efe5d6 100%);
+      line-height: 1.58;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 30px 18px 72px;
+    }
+
+    .hero,
+    .card {
+      background: linear-gradient(180deg, rgba(255, 250, 243, 0.98), rgba(255, 247, 237, 0.98));
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -20px;
+      bottom: -30px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(175, 79, 44, 0.16), transparent 70%);
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 12px;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    h1 {
+      font-size: clamp(2.3rem, 4vw, 3.8rem);
+      max-width: 10ch;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    h3 {
+      font-size: 1.06rem;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    .lede {
+      max-width: 72ch;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .grid-2,
+    .grid-3,
+    .pipeline,
+    .layer-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .hero-meta {
+      margin-top: 22px;
+    }
+
+    .hero-meta .card {
+      padding: 16px 18px;
+      min-height: 100%;
+    }
+
+    .section {
+      margin-top: 24px;
+    }
+
+    .section-head {
+      margin-bottom: 14px;
+    }
+
+    .card {
+      padding: 18px 18px 16px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.84rem;
+      border: 1px solid transparent;
+    }
+
+    .pill.rust {
+      background: var(--rust-soft);
+      color: #8f3b1c;
+      border-color: rgba(143, 59, 28, 0.15);
+    }
+
+    .pill.teal {
+      background: var(--teal-soft);
+      color: #124e52;
+      border-color: rgba(18, 78, 82, 0.14);
+    }
+
+    .pill.gold {
+      background: var(--gold-soft);
+      color: #775b0f;
+      border-color: rgba(119, 91, 15, 0.15);
+    }
+
+    .pill.green {
+      background: var(--green-soft);
+      color: #25532f;
+      border-color: rgba(37, 83, 47, 0.15);
+    }
+
+    .pipeline {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      align-items: stretch;
+    }
+
+    .step {
+      position: relative;
+      padding: 18px;
+      border-radius: 18px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      min-height: 170px;
+    }
+
+    .step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.5rem;
+      color: #a59076;
+    }
+
+    .step .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      margin-bottom: 10px;
+      font-size: 0.88rem;
+      background: #efe5d9;
+      color: #6a5946;
+    }
+
+    .layer-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .layer-card {
+      min-height: 100%;
+      border-top: 5px solid transparent;
+    }
+
+    .layer-card.l1 { border-top-color: var(--teal); }
+    .layer-card.l2a { border-top-color: var(--gold); }
+    .layer-card.l2b { border-top-color: var(--green); }
+    .layer-card.l3 { border-top-color: var(--rust); }
+
+    .mini {
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255, 250, 243, 0.8);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    th, td {
+      padding: 11px 12px;
+      border-bottom: 1px solid rgba(221, 210, 193, 0.85);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #5b5248;
+      background: rgba(239, 229, 217, 0.65);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .quote {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(31, 110, 114, 0.18);
+      background: linear-gradient(135deg, rgba(31, 110, 114, 0.08), rgba(255, 250, 243, 0.92));
+      font-style: italic;
+      font-size: 1.04rem;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 0.9em;
+      background: rgba(82, 72, 59, 0.08);
+      padding: 1px 5px;
+      border-radius: 6px;
+    }
+
+    .footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 980px) {
+      .grid-2,
+      .grid-3,
+      .pipeline,
+      .layer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .step:not(:last-child)::after {
+        content: "↓";
+        right: 18px;
+        top: auto;
+        bottom: -14px;
+        transform: none;
+      }
+
+      .page {
+        padding: 18px 14px 48px;
+      }
+
+      .hero {
+        padding: 22px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <h1>K2E Model Architecture Explained</h1>
+      <p class="lede">
+        This page explains what <code>K2E_Model_V2.py</code> is doing, why it has multiple model layers, how the targets are built,
+        and how to interpret the overall design. The script is not “one model.” It is a forecasting framework that compares several
+        ways of modeling energy-market returns across gas, power, and carbon.
+      </p>
+
+      <div class="hero-meta grid-3">
+        <div class="card">
+          <h3>Markets</h3>
+          <p><strong>TTF Natural Gas</strong>, <strong>German Power</strong>, and <strong>EUA Emissions</strong>.</p>
+        </div>
+        <div class="card">
+          <h3>Horizons</h3>
+          <p>Forecasts are produced for <strong>1</strong>, <strong>3</strong>, and <strong>5</strong> trading-day return horizons.</p>
+        </div>
+        <div class="card">
+          <h3>Model Philosophy</h3>
+          <p>Start with a strong linear benchmark, then test whether regime-awareness or volatility-weighting materially improves it.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>What Problem the Model Is Solving</h2>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <p>
+            The script models <strong>future cumulative log returns</strong> of major European energy assets. It is not trying to forecast
+            levels directly first. Instead, it converts market prices into return series, builds explanatory features from market and
+            physical-system variables, and predicts where returns will go over short future windows.
+          </p>
+          <div class="pill-row">
+            <span class="pill teal">Forecast target = future returns</span>
+            <span class="pill rust">Not just one market</span>
+            <span class="pill gold">Multiple horizons</span>
+          </div>
+        </div>
+        <div class="card">
+          <p>
+            This is a sensible design for energy markets because gas, power, and carbon are tightly linked by weather, fuel substitution,
+            infrastructure, storage, volatility, and policy shocks. A model that only sees price history would miss too much of the physical
+            and economic system.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>End-to-End Flow</h2>
+      </div>
+      <div class="pipeline">
+        <div class="step">
+          <div class="num">1</div>
+          <h3>Load Data</h3>
+          <p>Reads either a <code>.csv</code> or Excel workbook. For Excel, it prefers sheet <code>k2_clean</code> and falls back to <code>Data</code>.</p>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <h3>Engineer Features</h3>
+          <p>Creates anomalies, seasonal splits, storage deviations, log returns, realized vol, coal-gas buffer features, and COT positioning variables.</p>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <h3>Build Targets</h3>
+          <p>For each market and horizon, constructs <code>y</code> as the forward cumulative log return over the next <code>h</code> days.</p>
+        </div>
+        <div class="step">
+          <div class="num">4</div>
+          <h3>Train Layers</h3>
+          <p>Fits four competing model families: baseline Ridge, volatility-switching Ridge, GARCH-weighted Ridge, and Markov-switching ARX.</p>
+        </div>
+        <div class="step">
+          <div class="num">5</div>
+          <h3>Compare & Predict</h3>
+          <p>Evaluates each model with expanding-window cross-validation, then optionally generates out-of-sample forecasts on new data.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>How the Target Is Defined</h2>
+      </div>
+      <div class="card">
+        <p>
+          The core dataset builder is <code>make_X_y(d, market, h)</code>. It takes the market-specific feature block <code>X</code>, then defines
+          the target as the sum of future log returns over the next <code>h</code> days:
+        </p>
+        <div class="quote">
+          For horizon <code>h</code>, the model predicts “what cumulative return will happen over the next 1, 3, or 5 trading days?”
+        </div>
+        <p class="mini">
+          That means the model is naturally aligned with both near-term market moves and short tactical forecasting horizons.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Feature Families</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Physical & Weather Signals</h3>
+          <ul>
+            <li>German and French temperature anomalies</li>
+            <li>Gas-consumption anomalies</li>
+            <li>Scandinavian water reservoir deviations</li>
+            <li>Wind, solar, and French nuclear generation</li>
+            <li>EU storage deviations from seasonal normal</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Market & Fuel Signals</h3>
+          <ul>
+            <li>Lagged returns for TTF, power, EUA, coal, Brent, and JKM</li>
+            <li>Coal-gas switching support and resistance structure</li>
+            <li>Spot and prompt gas relationships</li>
+            <li>Realized volatility at 5-day and 20-day windows</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Positioning & Regime Signals</h3>
+          <ul>
+            <li>COT net positioning and long/short ratios</li>
+            <li>Russian pipeline flow shock variables</li>
+            <li>Binary “no buffer” flags for broken switching ranges</li>
+            <li>Interaction terms like <code>LR_COAL × NO_BUFFER</code></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Market-Specific Design</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Market</th>
+              <th>Target</th>
+              <th>Main feature logic</th>
+              <th>What the code is assuming</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>TTF</strong></td>
+              <td>Future TTF log return</td>
+              <td>Own lags, power, coal, Brent, JKM, LNG flow, Norway gas, storage, temperature, volatility, coal-gas buffer, COT</td>
+              <td>TTF is driven by both market dynamics and physical gas-balance conditions.</td>
+            </tr>
+            <tr>
+              <td><strong>POWER</strong></td>
+              <td>Future German power log return</td>
+              <td>Own lags, TTF, EUA asymmetry, coal, load, wind, solar, French nuclear, water anomaly, volatility, no-buffer interactions</td>
+              <td>Power reflects fuel prices plus supply-demand and weather-driven generation conditions.</td>
+            </tr>
+            <tr>
+              <td><strong>EUA</strong></td>
+              <td>Future EUA log return</td>
+              <td>Own lags, coal-gas switching levels, TTF, coal, power, load, LNG, Russian pipeline, volatility, buffer status, COT</td>
+              <td>Carbon is tied to the broader fuel stack and stress in the power/gas system.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>The Four Model Layers</h2>
+      </div>
+      <div class="layer-grid">
+        <div class="card layer-card l1">
+          <h3>Layer 1: Ridge-ARX Baseline</h3>
+          <p>
+            This is the benchmark. It standardizes the features, tunes the Ridge penalty over a small alpha grid,
+            then fits a single linear model for each market/horizon pair.
+          </p>
+          <ul>
+            <li><strong>Why Ridge?</strong> It handles many correlated predictors better than plain OLS.</li>
+            <li><strong>Why ARX?</strong> It combines autoregressive lags with exogenous drivers.</li>
+            <li><strong>Role in the stack:</strong> anchor model and feature selector for Layer 3.</li>
+          </ul>
+        </div>
+
+        <div class="card layer-card l2a">
+          <h3>Layer 2A: Vol-State Switching Ridge</h3>
+          <p>
+            This layer assumes the market is basically in one of two states: lower volatility or higher volatility.
+            It splits the sample using the expanding 75th percentile of <code>RVOL20</code>, then trains a separate Ridge model in each state.
+          </p>
+          <ul>
+            <li><strong>Idea:</strong> high-vol periods may obey different coefficients than calm periods.</li>
+            <li><strong>Forecast rule:</strong> classify the current state, then use the matching Ridge model.</li>
+            <li><strong>Limitation:</strong> only two states, and the split is imposed rather than learned.</li>
+          </ul>
+        </div>
+
+        <div class="card layer-card l2b">
+          <h3>Layer 2B: GARCH-Weighted Ridge</h3>
+          <p>
+            This layer still fits one linear model, but it reweights the training observations by inverse conditional volatility.
+            Very turbulent observations get less influence on coefficient estimation.
+          </p>
+          <ul>
+            <li><strong>Vol estimator:</strong> GARCH(1,1) if <code>arch</code> is installed, otherwise EWMA fallback.</li>
+            <li><strong>Idea:</strong> stop crisis points from overwhelming the full-sample fit.</li>
+            <li><strong>Role:</strong> robust version of Layer 1 rather than a fundamentally new structure.</li>
+          </ul>
+        </div>
+
+        <div class="card layer-card l3">
+          <h3>Layer 3: Markov-Switching ARX</h3>
+          <p>
+            This is the most structural model. Instead of hard-coding a high/low volatility split, it lets the model infer hidden regimes directly from the data.
+          </p>
+          <ul>
+            <li><strong>States:</strong> intended as normal, dual-stress, and gas-crisis regimes.</li>
+            <li><strong>Feature control:</strong> only the top 5 Layer 1 features are used to keep estimation tractable.</li>
+            <li><strong>Forecast rule:</strong> make state-specific predictions and average them using regime probabilities.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Why Layer 3 Uses Only Five Features</h2>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <p>
+            Markov-switching models get expensive and unstable quickly as the number of regressors grows. The code therefore selects the
+            <strong>top 5 features from Layer 1 by absolute Ridge coefficient</strong> before fitting the regime model.
+          </p>
+        </div>
+        <div class="card">
+          <p>
+            This means Layer 3 is not trying to beat Layer 1 by using more information. It is trying to beat Layer 1 by using
+            <strong>different structure</strong>: state-specific relationships and endogenous regime detection.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>How Validation Works</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Expanding-Window CV</h3>
+          <p>
+            The code does not randomly shuffle the data. It uses expanding-window folds, which is the right idea for time series.
+            Training always occurs on the past, testing on the future.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Metrics</h3>
+          <ul>
+            <li><strong>CV RMSE:</strong> lower is better</li>
+            <li><strong>Direction Accuracy:</strong> higher is better</li>
+            <li><strong>Naive RMSE comparison:</strong> compares each model to a zero-return forecast benchmark</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Important tradeoff</h3>
+          <p>
+            A model can win on RMSE and lose on direction accuracy, or vice versa. The script intentionally reports both because forecast quality depends on the use case.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>How Prediction Works Out of Sample</h2>
+      </div>
+      <div class="card">
+        <p>
+          When you pass <code>--predict</code>, the script appends the new data to the training history, re-engineers the features on the combined frame,
+          and then generates forecasts only for the dates belonging to the new dataset.
+        </p>
+        <ul>
+          <li><strong>L1:</strong> standardize with the stored scaler and predict with the fitted Ridge model.</li>
+          <li><strong>L2A:</strong> compute the volatility state, then route each row through the low-vol or high-vol Ridge model.</li>
+          <li><strong>L2B:</strong> use the weighted Ridge fit as a normal predictor at scoring time.</li>
+          <li><strong>L3:</strong> compute state-specific predictions and combine them using the last smoothed regime probabilities from training.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>What the Model Is Really Assuming</h2>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Economic Assumptions</h3>
+          <ul>
+            <li>Energy returns are partly predictable from short-run market memory.</li>
+            <li>Physical fundamentals such as storage, temperature, LNG, and generation matter.</li>
+            <li>Relationships are not fully stable through time.</li>
+            <li>Some instability comes from volatility shifts; some comes from deeper latent regimes.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Statistical Assumptions</h3>
+          <ul>
+            <li>Standardized linear effects are a useful first approximation.</li>
+            <li>Regularization is needed because many explanatory variables are correlated.</li>
+            <li>Time-series validation must preserve chronology.</li>
+            <li>Regime-switching estimation may be noisy, so the code uses restarts and can fall back from 3 states to 2.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="quote">
+        The script is best thought of as a layered forecasting research platform: start with a disciplined baseline, stress-test it with volatility-aware variants, then ask whether hidden economic regimes genuinely improve the signal.
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Short Summary You Can Reuse</h2>
+      </div>
+      <div class="card">
+        <p>
+          <strong>K2E_Model_V2.py</strong> is a multi-layer short-horizon forecasting framework for TTF gas, German power, and EUA carbon returns.
+          It transforms raw market and physical-system data into engineered features, predicts forward cumulative log returns at 1-, 3-, and 5-day horizons,
+          and compares four model structures: a Ridge-ARX benchmark, a two-state volatility-switching Ridge, a GARCH-weighted Ridge, and a Markov-switching ARX that learns hidden regimes directly from the data.
+        </p>
+      </div>
+      <p class="footer">
+        Built from the current structure of [K2E_Model_V2.py](/Users/jefflu/Library/CloudStorage/OneDrive-Personal/Documents/MSQF%20Fordham/ML%20Internship/K2E_Model_V2.py).
+      </p>
+    </section>
+  </div>
+</body>
+</html>

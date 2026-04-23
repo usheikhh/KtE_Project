@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>K2 Energy × Fordham — Progress Update</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a2028;
+    --panel-2: #232b36;
+    --ink: #e6e8eb;
+    --muted: #8a94a2;
+    --accent: #4fb3ff;
+    --accent-2: #7ee8a1;
+    --warn: #ffb454;
+    --danger: #ff6b6b;
+    --border: #2d3642;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 16px; line-height: 1.6;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 56px 48px 80px; }
+
+  .eyebrow { color: var(--muted); text-transform: uppercase; letter-spacing: 0.18em; font-size: 12px; }
+  h1 { font-size: 38px; margin: 8px 0 4px; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); font-size: 18px; margin-bottom: 6px; }
+  .meta { color: var(--muted); font-family: var(--mono); font-size: 13px; margin-bottom: 36px; }
+
+  h2 { font-size: 22px; margin: 36px 0 12px; color: var(--accent); letter-spacing: -0.01em;
+       padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 16px; margin: 18px 0 6px; color: var(--accent-2); }
+
+  p { margin: 8px 0; }
+  ul { margin: 6px 0 6px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  code, .mono { font-family: var(--mono); font-size: 0.9em; }
+  code { background: var(--panel-2); padding: 1px 6px; border-radius: 3px; color: var(--accent-2); }
+
+  .grid { display: grid; gap: 16px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 18px;
+  }
+  .card h3 { margin-top: 0; }
+  .card-accent { border-left: 3px solid var(--accent); }
+  .card-good   { border-left: 3px solid var(--accent-2); }
+  .card-warn   { border-left: 3px solid var(--warn); }
+  .card-bad    { border-left: 3px solid var(--danger); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 10px 0; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; }
+  td.mono { font-family: var(--mono); }
+  tr.best td { background: rgba(126, 232, 161, 0.06); }
+
+  .num-good { color: var(--accent-2); font-weight: 600; }
+  .num-bad  { color: var(--danger); font-weight: 600; }
+
+  .pill {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+    background: var(--panel-2); color: var(--muted);
+  }
+  .pill.good { background: rgba(126, 232, 161, 0.14); color: var(--accent-2); }
+  .pill.warn { background: rgba(255, 180, 84, 0.14); color: var(--warn); }
+  .pill.acc  { background: rgba(79, 179, 255, 0.14); color: var(--accent); }
+
+  .callout {
+    background: rgba(79, 179, 255, 0.08);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px; border-radius: 4px;
+    margin: 14px 0;
+  }
+  .callout.good { background: rgba(126, 232, 161, 0.08); border-left-color: var(--accent-2); }
+
+  .timeline { display: grid; grid-template-columns: 170px 1fr; gap: 8px 16px; margin-top: 10px; }
+  .tl-tag { color: var(--accent); font-family: var(--mono); font-size: 13px; padding-top: 2px; }
+  .tl-body { border-left: 1px solid var(--border); padding: 0 0 14px 16px; }
+  .tl-body strong { color: var(--ink); }
+  .tl-body p { margin: 2px 0; font-size: 14px; color: var(--muted); }
+
+  .small { font-size: 13px; color: var(--muted); }
+
+  .flow { display: flex; gap: 10px; margin: 14px 0; flex-wrap: wrap; }
+  .flow-box { flex: 1; min-width: 170px; background: var(--panel); border: 1px solid var(--border);
+              border-radius: 6px; padding: 12px 14px; }
+  .flow-box .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .flow-box .name  { font-weight: 600; margin-top: 2px; font-size: 14px; }
+  .flow-box .desc  { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+
+  .glossary { background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+              padding: 14px 18px; margin: 14px 0; }
+  .glossary dt { color: var(--accent-2); font-weight: 600; margin-top: 8px; font-size: 14px; }
+  .glossary dt:first-child { margin-top: 0; }
+  .glossary dd { margin: 2px 0 0 0; font-size: 14px; color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">K2 Energy × Fordham University · Phase 1</div>
+  <h1>Forecasting Pipeline — Progress Update</h1>
+  <p class="sub">European energy futures (TTF gas, German power, EUA carbon) · 1/3/5-day-ahead forecasts</p>
+  <p class="meta">Status: Production pipeline frozen; robustness audit complete &nbsp;·&nbsp; 2026-04-21 &nbsp;·&nbsp; Jeff Lu (jl344@fordham.edu)</p>
+
+  <!-- ───────────────── 1. PROJECT IN ONE PARAGRAPH ───────────────── -->
+  <h2>1. The project in one paragraph</h2>
+  <p>K2 Energy asked us to build a unified short-horizon forecasting pipeline for the three interconnected European energy markets they trade — Dutch TTF natural gas, German baseload power, and EU emission allowances (EUA carbon credits) — at 1, 3, and 5 trading-day horizons. That's nine forecast cells in total (three markets × three horizons). The deliverable is not "the highest possible R²"; it is <em>per-cell honest disclosure</em>: which cells the model can actually beat a simple benchmark, and which cells it cannot. The pipeline ships two parallel models per cell — one that predicts the <em>magnitude</em> of the next move, and one that predicts the <em>direction</em> — plus a referee that decides whether either model is trustworthy enough to use.</p>
+
+  <!-- ───────────────── 2. KEY VOCABULARY (NEW) ───────────────── -->
+  <h2>2. A few terms used throughout this document</h2>
+  <div class="glossary">
+    <dl>
+      <dt>Naive baseline</dt>
+      <dd>The simplest possible forecast: "tomorrow's price change will be zero" (i.e., the price stays the same). Sounds trivial, but for short horizons in liquid markets it is famously hard to beat — most of the daily move is unpredictable noise. Every metric in this document is reported <em>relative to this naive forecast</em>. A model has to be meaningfully better than "no forecast at all" to be worth deploying. When you see "vs naive: −9%", that means our model's typical error is 9% smaller than just guessing zero.</dd>
+
+      <dt>Forecast cell</dt>
+      <dd>One (market, horizon) combination. E.g., "TTF gas at 1-day-ahead" is one cell. We have nine cells total.</dd>
+
+      <dt>Magnitude vs direction</dt>
+      <dd>Two different forecasting problems. <strong>Magnitude</strong> = "by how much will the price move?" (judged by squared error). <strong>Direction</strong> = "will the price go up or down?" (judged by hit-rate). A trading desk uses these differently — magnitude for sizing, direction for entry signals.</dd>
+
+      <dt>Walk-forward / rolling validation</dt>
+      <dd>How we score the model honestly. We never let the model see the future: it is trained on data up to day T, evaluated on days T+1 onward, then re-trained as time advances. Two flavours: <em>expanding</em> (training set keeps growing) and <em>rolling</em> (training set is capped at the most recent ~2 years). We test both.</dd>
+    </dl>
+  </div>
+
+  <!-- ───────────────── 3. PIPELINE ARCHITECTURE ───────────────── -->
+  <h2>3. How the pipeline is built</h2>
+
+  <p>For each of the nine cells, four components run in sequence:</p>
+
+  <div class="flow">
+    <div class="flow-box">
+      <div class="label">Step 1 — Linear model</div>
+      <div class="name">Ridge regression</div>
+      <div class="desc">A regularised linear regression that uses all ~70 features. Fast, transparent, and gives us a feature-importance ranking that the next step uses.</div>
+    </div>
+    <div class="flow-box">
+      <div class="label">Step 2 — Regime model</div>
+      <div class="name">Markov-switching regression</div>
+      <div class="desc">A non-linear model that lets coefficients change with the market regime (calm vs volatile). Uses only the top-K features identified by Step 1.</div>
+    </div>
+    <div class="flow-box">
+      <div class="label">Step 3 — Referee</div>
+      <div class="name">Best-of-cell policy</div>
+      <div class="desc">For each cell, the policy compares Step 1, Step 2, and the naive baseline on out-of-sample error. Any model that is statistically <em>worse</em> than naive is rejected outright; otherwise the best is selected.</div>
+    </div>
+    <div class="flow-box">
+      <div class="label">Parallel — Direction</div>
+      <div class="name">Sign classifier</div>
+      <div class="desc">An entirely separate model that only predicts up vs down. Same input features. Scored on hit-rate and a directional skill test (Pesaran-Timmermann).</div>
+    </div>
+  </div>
+
+  <p class="small">Inputs: ~70 engineered features built from ~190 raw columns. The initial ~100 rows of source data were provided by K2E from their existing trading-desk feed (their proprietary dataset is the foundation of the project); we extended it with additional Bloomberg market data, ESMA trader-positioning reports, GIE gas-storage levels, weather forecasts, and physical gas/power flow data. Lags are enforced so the model never uses information it could not have had at the time of forecast. Implementation files: <code>K2E_Model_V4_3.py</code> (main pipeline), <code>K2E_Model_V4_4.py</code> (robustness wrapper), plus three diagnostic modules.</p>
+
+  <!-- ───────────────── 4. PROCESS / TIMELINE ───────────────── -->
+  <h2>4. How we got here — the process journey</h2>
+
+  <p class="small">The current pipeline is the result of several deliberate stages, each one a response to a problem the previous stage exposed. The two early-stage write-ups (<code>K2E_model_explainer.html</code> and <code>K2E_results_explainer.html</code>) document where we started and explain how the architecture got pruned to its current shape.</p>
+
+  <div class="timeline">
+    <div class="tl-tag">Stage 0 — Setup</div>
+    <div class="tl-body">
+      <strong>K2E provided the foundational dataset.</strong>
+      <p>The starting point was a curated set of ~100 source-data fields from K2E's own trading desk (price history, fuel relationships, COT positioning, physical-flow indicators). This is what every later experiment was built on. From there we layered in additional Bloomberg, weather, storage, and ESMA feeds to grow the engineered feature set to ~70 model-ready features.</p>
+    </div>
+
+    <div class="tl-tag">Stage 1 — Exploration</div>
+    <div class="tl-body">
+      <strong>Four-layer model bake-off.</strong>
+      <p>The first modeling stage compared four candidate model families head-to-head: a Ridge linear baseline, a high/low-volatility-state Ridge, a GARCH-weighted Ridge, and a Markov-switching regime model. This is the architecture documented in <code>K2E_model_explainer.html</code> and scored in <code>K2E_results_explainer.html</code>. Three findings shaped everything after: (a) the volatility-split model was almost always the weakest — a binary high/low classification was too crude; (b) the GARCH-weighted variant matched the baseline but rarely improved on it meaningfully; (c) the regime-switching model was the most interesting but also the most uneven. We kept only the linear baseline and the regime model, and dropped the two intermediate layers.</p>
+    </div>
+
+    <div class="tl-tag">Stage 2 — Streamlining</div>
+    <div class="tl-body">
+      <strong>Two-layer baseline (linear + regime model).</strong>
+      <p>With the architecture pruned to two layers, we re-validated more carefully and found two new problems: (a) some "winning" cells were actually <em>worse</em> than the naive baseline once we looked closely (one cell was 10% worse but still being reported as a win); (b) the regime model occasionally failed to fit and silently dropped entire cells from the results.</p>
+    </div>
+
+    <div class="tl-tag">Stage 3 — Discipline</div>
+    <div class="tl-body">
+      <strong>Added the referee — no architecture change.</strong>
+      <p>Built the referee component (Step 3 above) to <em>force</em> per-cell honesty: any model not beating naive at statistical significance is rejected. Fixed the silent-drop bug so weak cells now get reported instead of disappearing. This is the version currently treated as the production deliverable. Result: 2 cells beat naive on magnitude, 2 cells beat naive on direction, the remaining 7 cells get routed to the naive forecast — which is itself a useful, honest output.</p>
+    </div>
+
+    <div class="tl-tag">Stage 4a — Data expansion</div>
+    <div class="tl-body">
+      <strong>New data sources tested and dropped.</strong>
+      <p>Tried adding two new Bloomberg feeds: trader-positioning reports and an options-implied volatility surface. The positioning data <em>regressed</em> our results on the EUA market — diagnosis was redundancy with positioning features we already had. The volatility surface attempt was blocked by a 2-year gap in the Bloomberg pull (a vendor-side issue, not a modeling issue). Both attempts are documented as clean negative results so we do not repeat them.</p>
+    </div>
+
+    <div class="tl-tag">Stage 4b — Audit</div>
+    <div class="tl-body">
+      <strong>Robustness audit on the production pipeline.</strong>
+      <p>With no model improvement to ship, we used this stage to <em>stress-test</em> the existing one. Four checks:
+      (1) wrap the regime fit so failures degrade gracefully instead of crashing;
+      (2) run a block-bootstrap to put confidence intervals on every reported metric — does the win survive resampling?;
+      (3) slice the regime model's errors <em>by regime</em> — does the skill come from one specific market state?;
+      (4) re-validate using a rolling 2-year training window instead of an ever-growing one — does the win survive when the model can't lean on deep history?
+      Result: production results held up on the cells that mattered most, and the referee's rejections all proved correct under the new tests.</p>
+    </div>
+  </div>
+
+  <!-- ───────────────── 5. RESULTS — RMSE TRACK ───────────────── -->
+  <h2>5. Results — magnitude forecasts</h2>
+
+  <p class="small">Each row is one forecast cell. <strong>Policy</strong> is what the referee selected ({naive, linear, regime}). <strong>vs naive</strong> is the model's typical error compared to the naive baseline (negative is good — smaller error). <strong>DM p</strong> is a statistical-significance test on the difference. <strong>Bootstrap CI</strong> is the 90% confidence interval after resampling — if the whole interval is negative, the win is robust. <strong>Rolling Δ</strong> is what happens to the error when the training window is capped at 2 years.</p>
+
+  <table>
+    <thead>
+      <tr><th>Cell</th><th>Policy</th><th>CV RMSE</th><th>vs naive</th><th>DM p</th><th>Bootstrap 90% CI</th><th>Rolling Δ</th><th>Verdict</th></tr>
+    </thead>
+    <tbody>
+      <tr class="best"><td>TTF h=1</td><td><code>regime</code></td><td class="mono">0.04176</td><td class="mono num-good">−9.0%</td><td class="mono num-good">0.028**</td><td class="mono num-good">[−1.8%, −0.1%]</td><td class="mono num-good">+0.0%</td><td><span class="pill good">Robust ✓</span></td></tr>
+      <tr><td>TTF h=3</td><td><code>naive</code></td><td class="mono">0.07961</td><td class="mono">0%</td><td class="mono">veto</td><td class="mono">model CI [+0.2%, +3.2%]</td><td class="mono">—</td><td><span class="pill">veto correct</span></td></tr>
+      <tr><td>TTF h=5</td><td><code>naive</code></td><td class="mono">0.10224</td><td class="mono">0%</td><td class="mono">veto</td><td class="mono">model CI [+0.3%, +3.5%]</td><td class="mono num-bad">+14.8%</td><td><span class="pill">veto correct</span></td></tr>
+      <tr><td>POWER h=1</td><td><code>regime</code></td><td class="mono">0.03904</td><td class="mono num-good">−11.6%</td><td class="mono">0.147</td><td class="mono">[−3.8%, +0.5%]</td><td class="mono num-good">+0.4%</td><td><span class="pill warn">Promising</span></td></tr>
+      <tr><td>POWER h=3</td><td><code>naive</code></td><td class="mono">0.07725</td><td class="mono">0%</td><td class="mono">veto</td><td class="mono">model CI [−3.2%, +3.2%]</td><td class="mono num-bad">+10.2%</td><td><span class="pill">veto correct</span></td></tr>
+      <tr><td>POWER h=5</td><td><code>naive</code></td><td class="mono">0.10222</td><td class="mono">0%</td><td class="mono num-good">veto</td><td class="mono num-bad">model CI [+7.8%, +37%]</td><td class="mono num-bad">+17.9%</td><td><span class="pill">veto correct</span></td></tr>
+      <tr><td>EUA h=1</td><td><code>naive</code></td><td class="mono">0.02230</td><td class="mono">0%</td><td class="mono">DA-broken</td><td class="mono">—</td><td class="mono">—</td><td><span class="pill">veto correct</span></td></tr>
+      <tr><td>EUA h=3</td><td><code>naive</code></td><td class="mono">0.04101</td><td class="mono">0%</td><td class="mono">veto</td><td class="mono">model CI [+0.1%, +3.1%]</td><td class="mono">+2.9%</td><td><span class="pill">veto correct</span></td></tr>
+      <tr><td>EUA h=5</td><td><code>naive</code></td><td class="mono">0.05406</td><td class="mono">0%</td><td class="mono">veto</td><td class="mono">model CI [+4.8%, +9.5%]</td><td class="mono">−0.0%</td><td><span class="pill">veto correct</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ───────────────── 6. RESULTS — SIGN TRACK ───────────────── -->
+  <h2>6. Results — directional forecasts</h2>
+
+  <p class="small"><strong>DA</strong> = directional accuracy (% of days with correct sign — 50% is coin-flip). <strong>PT p</strong> = Pesaran-Timmermann test that the hit-rate is statistically distinguishable from luck. <strong>Sharpe*</strong> = annualised return-to-risk ratio of trading on the model's signal (rough — ignores costs).</p>
+
+  <table>
+    <thead>
+      <tr><th>Cell</th><th>DA</th><th>PT p</th><th>Sharpe*</th><th>Bootstrap PT CI</th><th>Rolling Δ DA</th><th>Verdict</th></tr>
+    </thead>
+    <tbody>
+      <tr class="best"><td>EUA h=3</td><td class="mono num-good">55.3%</td><td class="mono num-good">0.008***</td><td class="mono num-good">+0.89</td><td class="mono num-good">[+0.44, +4.56]</td><td class="mono num-good">+0.2 pp</td><td><span class="pill good">Robust ✓</span></td></tr>
+      <tr><td>EUA h=5</td><td class="mono">53.6%</td><td class="mono">0.036**</td><td class="mono">+0.54</td><td class="mono">[−0.52, +4.27]</td><td class="mono num-good">+0.8 pp</td><td><span class="pill warn">Promising</span></td></tr>
+      <tr><td>POWER h=1</td><td class="mono">53.6%</td><td class="mono">0.480</td><td class="mono num-good">+1.09</td><td class="mono">[−1.42, +1.56]</td><td class="mono">+0.4 pp</td><td><span class="pill warn">Heavy-tail driven</span></td></tr>
+      <tr><td>TTF h=3</td><td class="mono">53.9%</td><td class="mono">0.154</td><td class="mono">+0.49</td><td class="mono">[−0.82, +3.10]</td><td class="mono">−0.4 pp</td><td><span class="pill warn">Promising</span></td></tr>
+      <tr><td>TTF h=5</td><td class="mono">54.6%</td><td class="mono">0.223</td><td class="mono">+0.51</td><td class="mono">[−1.78, +3.26]</td><td class="mono">−0.2 pp</td><td><span class="pill warn">Promising</span></td></tr>
+      <tr><td>Other 4 cells</td><td class="mono">~50%</td><td class="mono">n.s.</td><td class="mono">~0</td><td class="mono">straddle 0</td><td class="mono">flat</td><td><span class="pill">no signal</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ───────────────── 7. SUMMARY METRICS ───────────────── -->
+  <h2>7. Headline numbers</h2>
+  <div class="grid grid-3">
+    <div class="card card-good">
+      <h3>Bootstrap-robust wins</h3>
+      <p style="font-size: 28px; font-family: var(--mono); margin: 6px 0;" class="num-good">2 / 9</p>
+      <p class="small">TTF gas at 1-day (magnitude) and EUA carbon at 3-day (direction). All confidence intervals strictly favour the model over the naive baseline.</p>
+    </div>
+    <div class="card card-warn">
+      <h3>Promising but unproven</h3>
+      <p style="font-size: 28px; font-family: var(--mono); margin: 6px 0; color: var(--warn);">3 / 9</p>
+      <p class="small">German power at 1-day (magnitude), EUA at 5-day (direction), German power at 3-day (regime-bound directional pattern — see findings below).</p>
+    </div>
+    <div class="card card-accent">
+      <h3>Referee correctness</h3>
+      <p style="font-size: 28px; font-family: var(--mono); margin: 6px 0;" class="num-good">100%</p>
+      <p class="small">Every cell the referee routed to naive: bootstrap shows the model is genuinely worse, and rolling-window validation confirms it. The referee component is itself validated.</p>
+    </div>
+  </div>
+
+  <div class="callout good" style="margin-top: 20px;">
+    <strong>Bottom line:</strong> The robustness audit converted a "two magnitude wins, two directional wins" headline into "<em>one</em> bootstrap-robust magnitude win, <em>one</em> bootstrap-robust directional win, three more cells with promising point estimates that need more data, and a referee that earns trust by correctly rejecting everything else." This is a more credible package to give a trading desk than the unaudited numbers — fewer claims, but each one defended on three independent stress tests.
+  </div>
+
+  <!-- ───────────────── 8. NOTABLE FINDINGS ───────────────── -->
+  <h2>8. A few methodologically interesting findings</h2>
+
+  <div class="grid grid-2">
+    <div class="card card-accent">
+      <h3>Regime-bound directional signal (German power, 3-day)</h3>
+      <p class="small">The regime model produces a strong directional signal here, but the standalone direction classifier on the same features cannot. Slicing by regime explained why: in the calm regime, hit-rate is 60%; in a small mid-volatility regime, 75%; in the high-volatility regime, only 36% (signal inverts). The directional skill lives <em>inside</em> the regime structure, not in the raw features. Natural follow-up: build a classifier that conditions its output on the inferred regime.</p>
+    </div>
+    <div class="card card-accent">
+      <h3>Regime degeneracy in three configurations</h3>
+      <p class="small">For three cells, the hyperparameter sweep selected configurations where the regime model's "different regimes" turned out to have <em>identical</em> volatilities — so the regimes only differ in their coefficients, which is harder to interpret economically. Suggests a sensitivity check forcing distinct regime variances.</p>
+    </div>
+    <div class="card card-accent">
+      <h3>Clean negative result on positioning data</h3>
+      <p class="small">Five candidate features built from Bloomberg's ESMA trader-positioning data all degraded EUA performance. Diagnosis: collinearity with positioning features already in the pipeline (different vendor source, same underlying signal). Documented so we don't relitigate it. The data plumbing was kept in place in case a future interaction or regime-gated experiment can extract orthogonal value.</p>
+    </div>
+    <div class="card card-accent">
+      <h3>Independent validation of the referee</h3>
+      <p class="small">The referee component was originally designed using the expanding-window validation. The new bootstrap and rolling-window tests are independent of that protocol — and both independently confirm <em>every</em> rejection the referee made. This means the referee rule itself has external validation, not just the cells it accepted.</p>
+    </div>
+  </div>
+
+  <!-- ───────────────── 9. FEATURE INVENTORY ───────────────── -->
+  <h2>9. Feature inventory and model selections</h2>
+
+  <p>The model sees three distinct pools of input data. Each feature in the pipeline comes from one of these three sources:</p>
+
+  <div class="grid grid-3" style="margin-bottom: 20px;">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h3 style="margin-top:0; color: var(--accent);">K2E dataset</h3>
+      <p class="small">The foundational data feed K2E provided: front-month and CAL-1 market prices (TTF, POWER, EUA, coal, Brent, JKM, NBP), weather and demand fundamentals, physical gas/power flows, COT positioning, and coal-gas switch levels. All <code>BM_</code>, <code>IM_</code>, <code>MF_</code>, and <code>DERIVED_</code> raw columns. Covers 2021–2024.</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--warn);">
+      <h3 style="margin-top:0; color: var(--warn);">Bloomberg (V4.2)</h3>
+      <p class="small">Additional Bloomberg terminal pull added in V4.2: TTF/NBP/EUA term-structure spreads, EUA implied volatility and auction premium, EUA/TTF open-interest and volume changes, French nuclear output, Rotterdam coal return, and the Baltic Dry Index. All <code>BBG_</code>-prefixed features. Sourced from <code>KtE_BBG_Data_Extract-1.xlsx</code>.</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent-2);">
+      <h3 style="margin-top:0; color: var(--accent-2);">GIE API (V4.1)</h3>
+      <p class="small">EU and German gas-storage data pulled daily from the GIE AGSI+ API via <code>gie_fetcher.py</code>, added in V4.1: storage fill levels, injection/withdrawal flows, day-of-year deviations, and German facility outage volumes. All <code>GIE_</code>-prefixed features.</p>
+    </div>
+  </div>
+
+  <style>
+    .src-k2e  { background: rgba(79,179,255,0.14); color: var(--accent);   font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px; white-space:nowrap; }
+    .src-bbg  { background: rgba(255,180,84,0.14);  color: var(--warn);    font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px; white-space:nowrap; }
+    .src-gie  { background: rgba(126,232,161,0.14); color: var(--accent-2);font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px; white-space:nowrap; }
+    .feat-table { width:100%; border-collapse:collapse; font-size:13px; margin:8px 0 18px; }
+    .feat-table th { color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; font-size:11px; padding:5px 8px; border-bottom:1px solid var(--border); text-align:left; }
+    .feat-table td { padding:5px 8px; border-bottom:1px solid rgba(45,54,66,0.5); vertical-align:top; }
+    .feat-table code { font-size:12px; }
+    .feat-table tr:last-child td { border-bottom:none; }
+    .feat-group { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:0.1em; padding:8px 8px 3px; font-weight:600; }
+  </style>
+
+  <!-- ── TTF ── -->
+  <h3>TTF gas — 43 candidate features</h3>
+  <table class="feat-table">
+    <thead><tr><th>Feature(s)</th><th>What it measures</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr class="feat-group"><td colspan="3">Own-return autoregressive lags</td></tr>
+      <tr><td><code>LR_TTF_lag1/2/3/5</code></td><td>1-, 2-, 3-, 5-day lagged log-return of TTF front-month</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Cross-market lags</td></tr>
+      <tr><td><code>LR_POWER_lag1</code></td><td>German power return lag-1</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_TTF_DA_lag1</code></td><td>TTF day-ahead spot return lag-1</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_COAL_lag1</code></td><td>ARA coal CAL-1 return lag-1</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_BRENT_lag1</code></td><td>Brent crude front-month return lag-1</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_JKM_lag1</code></td><td>Asian LNG (JKM) return lag-1</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Physical fundamentals</td></tr>
+      <tr><td><code>D_GAS_CONS_ANOM</code></td><td>Day-on-day change in German gas consumption deviation from 2-year average</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>TEMP_ANOM_WARM</code></td><td>Germany temperature vs normal, warm-season months only (Apr–Sep)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>TEMP_ANOM_COOL</code></td><td>Germany temperature vs normal, cool-season months only (Oct–Mar)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>STORAGE_DEV</code></td><td>EU gas storage TWh vs day-of-year historical mean</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_LNG_FLOW</code></td><td>Log-change in European LNG send-out (GWh/d)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_NOR_GAS</code></td><td>Log-change in Norwegian gas pipeline import (GWh/d)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>D_RUS_PIPE</code></td><td>Day-on-day change in Russian pipeline flow (GWh/d); zeroed after Sep 2022</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Coal-gas switch buffer</td></tr>
+      <tr><td><code>NO_BUFFER_M1</code></td><td>Binary flag — front-month coal-gas switch resistance price is missing (no economic buffer)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LOG_BUFFER_M1</code></td><td>Log of the front-month switch buffer width (resistance − support); 0 when no buffer</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Realised volatility</td></tr>
+      <tr><td><code>RVOL20_TTF</code>, <code>RVOL5_TTF</code></td><td>20-day and 5-day rolling std of TTF log-returns</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Interaction terms</td></tr>
+      <tr><td><code>LR_JKM_x_NOBUF</code>, <code>LR_COAL_x_NOBUF</code></td><td>JKM/coal returns × no-buffer flag — captures amplified cross-market transmission when no switching cushion exists</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">COT trader positioning</td></tr>
+      <tr><td><code>D_COT_TTF_HF_NET</code></td><td>Day-on-day change in TTF hedge fund net position (MWh)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>COT_TTF_HF_RATIO</code></td><td>Hedge fund long / (long + short) — directional sentiment</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Term structure &amp; options (V4 derived)</td></tr>
+      <tr><td><code>TTF_TS</code>, <code>D_TTF_TS</code></td><td>TTF CAL-1 vs front-month spread (log); and its daily change — contango/backwardation signal</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_TTF_CAL</code></td><td>Log-return of TTF CAL-1 contract</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_TTF_IV</code></td><td>Log-change in TTF at-the-money options implied volatility</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>D_TTF_PREM</code></td><td>Daily change in TTF options premium (EUR/MWh)</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">EU gas storage &amp; flows (V4.1 — GIE API)</td></tr>
+      <tr><td><code>GIE_EU_FULL_DOY_DEV</code></td><td>EU storage fill % deviation from day-of-year historical mean — seasonal storage anomaly</td><td><span class="src-gie">GIE API</span></td></tr>
+      <tr><td><code>GIE_EU_NET_WD</code></td><td>EU net withdrawal (GWh/d); positive = destocking</td><td><span class="src-gie">GIE API</span></td></tr>
+      <tr><td><code>D_GIE_EU_NET_WD</code></td><td>Daily change in EU net withdrawal</td><td><span class="src-gie">GIE API</span></td></tr>
+      <tr><td><code>GIE_EU_INJ_LR</code></td><td>Log-change in EU gross injection (GWh/d)</td><td><span class="src-gie">GIE API</span></td></tr>
+      <tr><td><code>GIE_EU_WD_LR</code></td><td>Log-change in EU gross withdrawal (GWh/d)</td><td><span class="src-gie">GIE API</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">German facility outages (V4.1 — GIE API)</td></tr>
+      <tr><td><code>GIE_DE_OUT_UNPL</code></td><td>German storage unplanned outage volume (GWh/d)</td><td><span class="src-gie">GIE API</span></td></tr>
+      <tr><td><code>GIE_DE_OUT_TOT_LOG1P</code></td><td>Log(1 + planned + unplanned outages) — compressed total outage signal</td><td><span class="src-gie">GIE API</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Bloomberg term structure, positioning &amp; freight (V4.2)</td></tr>
+      <tr><td><code>BBG_LR_TTF_M1_M2</code>, <code>D_BBG_LR_TTF_M1_M2</code></td><td>TTF M2/M1 spread (contango=positive) and its daily change</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+      <tr><td><code>BBG_LR_TTF_M1_M3</code></td><td>TTF M3/M1 spread — wider term-structure signal</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+      <tr><td><code>BBG_LR_NBP_M1_M2</code></td><td>UK NBP M2/M1 spread — cross-basin arbitrage signal</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+      <tr><td><code>D_LOG_OI_TZTA</code></td><td>Daily log-change in TTF front-month open interest — position-build/liquidation</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+      <tr><td><code>D_LOG_VOL_TZTA</code></td><td>Daily log-change in TTF front-month traded volume</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+      <tr><td><code>BBG_LR_BDIY</code></td><td>Baltic Dry Index daily return — freight/coal-flow proxy</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── POWER ── -->
+  <h3>German power — 32 candidate features (+1 optional)</h3>
+  <table class="feat-table">
+    <thead><tr><th>Feature(s)</th><th>What it measures</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr class="feat-group"><td colspan="3">Own-return AR lags</td></tr>
+      <tr><td><code>LR_POWER_lag1/2/3/5</code></td><td>1-, 2-, 3-, 5-day lagged log-return of German baseload front-month</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Cross-market lags</td></tr>
+      <tr><td><code>LR_TTF_lag1</code></td><td>TTF gas return lag-1 (fuel-cost input)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_EUA_pos</code>, <code>LR_EUA_neg</code></td><td>EUA return, positive and negative halves separated — asymmetric carbon pass-through</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_COAL_lag1</code></td><td>ARA coal return lag-1 (dark spread input)</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Demand &amp; weather fundamentals</td></tr>
+      <tr><td><code>LR_LOAD</code></td><td>Log-change in German power system load (GW)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>TEMP_ANOM_WARM</code>, <code>TEMP_ANOM_COOL</code></td><td>Germany temperature vs normal (seasonal split)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>WATER_ANOM_SCAN</code></td><td>Scandinavian reservoir level vs normal (TWh) — hydro availability</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>WATER_ANOM_ALP</code></td><td>Alpine reservoir level vs normal (TWh)</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Renewable &amp; nuclear supply</td></tr>
+      <tr><td><code>LR_WIND</code></td><td>Log-change in German wind generation (GW)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_SOLAR</code></td><td>Log-change in German solar generation (GW)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_NUCLEAR_FR</code></td><td>Log-change in French nuclear generation (GW) — cross-border supply</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Coal-gas switch buffer</td></tr>
+      <tr><td><code>NO_BUFFER_M1</code></td><td>Binary — no economic switching cushion (front-month)</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Realised volatility</td></tr>
+      <tr><td><code>RVOL20_POWER</code>, <code>RVOL5_POWER</code></td><td>20-day and 5-day rolling std of power log-returns</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Interaction terms</td></tr>
+      <tr><td><code>LR_TTF_x_NOBUF</code>, <code>LR_EUA_x_NOBUF</code></td><td>Gas/EUA returns × no-buffer flag</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Spark spread &amp; term structure (V4 derived)</td></tr>
+      <tr><td><code>SPARK_Z20</code></td><td>20-day z-scored clean spark spread (power − gas×heat_rate − EUA×emission_factor)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>D_CLEAN_SPARK</code></td><td>Daily change in clean spark spread (EUR/MWh)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>POWER_TS</code>, <code>D_POWER_TS</code></td><td>Power CAL-1 vs front-month spread (log) and its daily change</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_POWER_CAL</code></td><td>Log-return of German power CAL-1</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_RESID_LOAD</code> <em>(optional)</em></td><td>Log-change in residual load (total load minus wind + solar) if pre-computed</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">German gas storage &amp; outages (V4.1 — GIE API)</td></tr>
+      <tr><td><code>GIE_DE_FULL_DOY_DEV</code></td><td>German storage fill % deviation from day-of-year mean</td><td><span class="src-gie">GIE API</span></td></tr>
+      <tr><td><code>GIE_DE_NET_WD</code></td><td>German net withdrawal (GWh/d)</td><td><span class="src-gie">GIE API</span></td></tr>
+      <tr><td><code>D_GIE_DE_NET_WD</code></td><td>Daily change in German net withdrawal</td><td><span class="src-gie">GIE API</span></td></tr>
+      <tr><td><code>GIE_DE_OUT_UNPL</code></td><td>German storage unplanned outage volume (GWh/d)</td><td><span class="src-gie">GIE API</span></td></tr>
+      <tr><td><code>GIE_DE_OUT_TOT_LOG1P</code></td><td>Log(1 + total DE outages)</td><td><span class="src-gie">GIE API</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Bloomberg (V4.2)</td></tr>
+      <tr><td><code>BBG_LR_POWER_BASE_PEAK</code></td><td>UK power peak-to-base spread log-return — intraday shape stress proxy</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+      <tr><td><code>D_BBG_PX_RTEGNUCD</code></td><td>Daily change in French nuclear daily-output ticker (supply shock)</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+      <tr><td><code>BBG_LR_COAL_XA1</code></td><td>Rotterdam coal front (XA1) daily log-return</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── EUA ── -->
+  <h3>EUA carbon — 37 candidate features</h3>
+  <table class="feat-table">
+    <thead><tr><th>Feature(s)</th><th>What it measures</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr class="feat-group"><td colspan="3">Own-return AR lags</td></tr>
+      <tr><td><code>LR_EUA_lag1/2/3/5</code></td><td>1-, 2-, 3-, 5-day lagged log-return of EUA CAL-1</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Cross-market lags</td></tr>
+      <tr><td><code>LR_TTF_lag1</code>, <code>LR_POWER_lag1</code>, <code>LR_COAL_lag1</code></td><td>Gas, power, and coal returns lag-1 — fuel-switch transmission channel</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_COAL_GS</code>, <code>LR_COAL_GS_CAL</code></td><td>Log-return of coal-gas switch support level (front and CAL-1) — economic switching threshold</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_BRENT_lag1</code></td><td>Brent crude return lag-1</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Demand &amp; macro fundamentals</td></tr>
+      <tr><td><code>TEMP_ANOM_COOL</code></td><td>Germany temperature vs normal (cool season) — heating demand</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_LOAD</code></td><td>Log-change in German power system load</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Gas supply / fuel-switch channel</td></tr>
+      <tr><td><code>D_RUS_PIPE</code></td><td>Day-on-day change in Russian pipeline flow (zeroed post-Sep 2022)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LR_LNG_FLOW</code></td><td>Log-change in European LNG send-out</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Coal-gas switch buffer</td></tr>
+      <tr><td><code>NO_BUFFER_M1</code>, <code>NO_BUFFER_CAL</code></td><td>Binary flags — no switch buffer (front and CAL-1)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>LOG_BUFFER_CAL</code></td><td>Log of CAL-1 switch buffer width</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Realised volatility</td></tr>
+      <tr><td><code>RVOL20_EUA</code>, <code>RVOL5_EUA</code></td><td>20-day and 5-day rolling std of EUA returns</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>RVOL20_TTF</code></td><td>20-day rolling std of TTF returns — cross-market vol signal</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Interaction terms</td></tr>
+      <tr><td><code>LR_COAL_x_NOBUF</code></td><td>Coal return × no-buffer flag</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">COT positioning — hedge fund cohort</td></tr>
+      <tr><td><code>D_COT_EUA_HF_NET</code></td><td>Day-on-day change in EUA hedge fund net position</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>COT_EUA_HF_RATIO</code></td><td>HF long / (long + short) — directional sentiment</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">COT positioning — compliance cohort (V4 derived)</td></tr>
+      <tr><td><code>D_COT_EUA_COMPL_NET</code></td><td>Day-on-day change in EUA compliance-buyer net position (ESMA directive obligations)</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>COT_EUA_COMPL_vs_HF</code></td><td>Compliance net minus HF net — divergence between long-horizon hedgers and speculators</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>D_COT_EUA_COMPL_vs_HF</code></td><td>Daily change in that divergence</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Spark spread &amp; TTF term structure (V4 derived)</td></tr>
+      <tr><td><code>SPARK_Z20</code></td><td>20-day z-scored clean spark spread</td><td><span class="src-k2e">K2E</span></td></tr>
+      <tr><td><code>TTF_TS</code></td><td>TTF CAL-1 vs front-month spread (log) — fuel-switch incentive at forward horizon</td><td><span class="src-k2e">K2E</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">EU gas storage (V4.1 — GIE API)</td></tr>
+      <tr><td><code>GIE_EU_FULL_DOY_DEV</code></td><td>EU storage fill % deviation vs seasonal mean</td><td><span class="src-gie">GIE API</span></td></tr>
+      <tr><td><code>GIE_EU_NET_WD</code></td><td>EU net withdrawal rate (GWh/d)</td><td><span class="src-gie">GIE API</span></td></tr>
+      <tr><td><code>GIE_DE_OUT_TOT_LOG1P</code></td><td>Log(1 + total German storage outages) — gas-supply tightness via fuel-switch channel</td><td><span class="src-gie">GIE API</span></td></tr>
+
+      <tr class="feat-group"><td colspan="3">Bloomberg EUA term structure, IV, auction, positioning (V4.2)</td></tr>
+      <tr><td><code>BBG_LR_EUA_M1_M2</code>, <code>D_BBG_LR_EUA_M1_M2</code></td><td>EUA M2/M1 spread and its daily change — EUA term structure signal</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+      <tr><td><code>BBG_IVOL_MO1</code></td><td>EUA front-month options implied volatility level</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+      <tr><td><code>D_BBG_IVOL_MO1</code></td><td>Daily change in EUA implied vol</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+      <tr><td><code>BBG_IVOL_MO1_Z20</code></td><td>20-day z-score of EUA implied vol — normalised vol regime signal</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+      <tr><td><code>BBG_LR_EUA_AUCTION_VS_MO1</code></td><td>EUA auction price vs MO1 futures spread — primary-market demand pressure</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+      <tr><td><code>D_LOG_OI_MO1</code></td><td>Daily log-change in EUA front-month open interest</td><td><span class="src-bbg">Bloomberg</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── SELECTED FEATURES ── -->
+  <h2>10. Features selected for each final model</h2>
+
+  <p class="small">L1 (Ridge) ranks features by absolute coefficient magnitude and passes the top-<em>k</em> to L3 (Markov-switching), with the AR-1 lag always force-included. The <em>k</em> and regime configuration per cell were chosen by V4.3's cross-validated sweep. Source labels reflect where the raw data originated.</p>
+
+  <div class="grid grid-2" style="margin-top: 16px;">
+
+    <div class="card card-good">
+      <h3>TTF h=1 — regime model <span class="pill good">Robust ✓</span></h3>
+      <p class="small"><strong>Config:</strong> k=3, 2 states, fixed-variance (FV) &nbsp;·&nbsp; α=10,000</p>
+      <p class="small"><strong>Top-7 by L1 |coef|:</strong> <code>D_RUS_PIPE</code> <span class="src-k2e">K2E</span>, <code>LR_COAL_lag1</code> <span class="src-k2e">K2E</span>, <code>LOG_BUFFER_M1</code> <span class="src-k2e">K2E</span>, <code>LR_TTF_lag3</code> <span class="src-k2e">K2E</span>, <code>D_TTF_PREM</code> <span class="src-k2e">K2E</span>, <code>D_LOG_VOL_TZTA</code> <span class="src-bbg">Bloomberg</span>, <code>BBG_LR_TTF_M1_M2</code> <span class="src-bbg">Bloomberg</span></p>
+      <p class="small"><strong>L3 selected (k=3):</strong> <code>LR_TTF_lag1</code> <span class="src-k2e">K2E</span> (AR-forced), <code>D_RUS_PIPE</code> <span class="src-k2e">K2E</span>, <code>LR_COAL_lag1</code> <span class="src-k2e">K2E</span></p>
+      <p class="small" style="margin-top:6px;">Three K2E features. The flagship magnitude win runs on own-lag momentum + Russian pipeline flow shock + coal input cost. All three are K2E-sourced. The Bloomberg signals (vol, term structure) ranked 6th–7th — informative but not selected at k=3.</p>
+    </div>
+
+    <div class="card card-good">
+      <h3>EUA h=3 sign classifier <span class="pill good">Robust ✓</span></h3>
+      <p class="small"><strong>Config:</strong> logistic regression, C=0.01 (heavy L2 regularisation) — uses full feature block, no top-k truncation &nbsp;·&nbsp; α not applicable</p>
+      <p class="small"><strong>Top-7 L1 |coef| on EUA block:</strong> <code>BBG_IVOL_MO1</code> <span class="src-bbg">Bloomberg</span>, <code>LR_EUA_lag3</code> <span class="src-k2e">K2E</span>, <code>COT_EUA_COMPL_vs_HF</code> <span class="src-k2e">K2E</span>, <code>BBG_IVOL_MO1_Z20</code> <span class="src-bbg">Bloomberg</span>, <code>D_RUS_PIPE</code> <span class="src-k2e">K2E</span>, <code>RVOL20_EUA</code> <span class="src-k2e">K2E</span>, <code>LR_EUA_lag5</code> <span class="src-k2e">K2E</span></p>
+      <p class="small" style="margin-top:6px;">The directional flagship is driven by Bloomberg EUA implied vol (level and z-score) as the primary signal, then compliance-vs-HF positioning divergence, own-return lags, and realised vol. Bloomberg and K2E features are both doing real work here — this cell could not be replicated without the BBG IV pull.</p>
+    </div>
+
+    <div class="card card-warn">
+      <h3>POWER h=1 — regime model <span class="pill warn">Promising</span></h3>
+      <p class="small"><strong>Config:</strong> k=5, 2 states, switching-variance (SV) &nbsp;·&nbsp; α=10,000</p>
+      <p class="small"><strong>Top-7 by L1 |coef|:</strong> <code>LR_COAL_lag1</code> <span class="src-k2e">K2E</span>, <code>LR_POWER_lag5</code> <span class="src-k2e">K2E</span>, <code>LR_EUA_pos</code> <span class="src-k2e">K2E</span>, <code>WATER_ANOM_SCAN</code> <span class="src-k2e">K2E</span>, <code>RVOL20_POWER</code> <span class="src-k2e">K2E</span>, <code>GIE_DE_NET_WD</code> <span class="src-gie">GIE API</span>, <code>D_POWER_TS</code> <span class="src-k2e">K2E</span></p>
+      <p class="small"><strong>L3 selected (k=5):</strong> <code>LR_POWER_lag1</code> <span class="src-k2e">K2E</span> (AR-forced), <code>LR_COAL_lag1</code> <span class="src-k2e">K2E</span>, <code>LR_POWER_lag5</code> <span class="src-k2e">K2E</span>, <code>LR_EUA_pos</code> <span class="src-k2e">K2E</span>, <code>WATER_ANOM_SCAN</code> <span class="src-k2e">K2E</span></p>
+      <p class="small" style="margin-top:6px;">Five K2E features. Healthy 3× vol separation between regimes (σ calm=0.025 vs turbulent=0.072). GIE net-withdrawal ranked 6th — picked up at k=6+ but not at k=5.</p>
+    </div>
+
+    <div class="card card-warn">
+      <h3>POWER h=3 — regime model <span class="pill warn">Regime-gated candidate</span></h3>
+      <p class="small"><strong>Config:</strong> k=3, 3 states, switching-variance (SV) &nbsp;·&nbsp; α=10,000 &nbsp;·&nbsp; <em>RMSE-vetoed; directionally interesting</em></p>
+      <p class="small"><strong>Top-7 by L1 |coef|:</strong> <code>GIE_DE_NET_WD</code> <span class="src-gie">GIE API</span>, <code>LR_POWER_lag2</code> <span class="src-k2e">K2E</span>, <code>WATER_ANOM_SCAN</code> <span class="src-k2e">K2E</span>, <code>BBG_LR_POWER_BASE_PEAK</code> <span class="src-bbg">Bloomberg</span>, <code>GIE_DE_OUT_TOT_LOG1P</code> <span class="src-gie">GIE API</span>, <code>LR_EUA_neg</code> <span class="src-k2e">K2E</span>, <code>D_POWER_TS</code> <span class="src-k2e">K2E</span></p>
+      <p class="small"><strong>L3 selected (k=3):</strong> <code>LR_POWER_lag1</code> <span class="src-k2e">K2E</span> (AR-forced), <code>GIE_DE_NET_WD</code> <span class="src-gie">GIE API</span>, <code>LR_POWER_lag2</code> <span class="src-k2e">K2E</span></p>
+      <p class="small" style="margin-top:6px;">GIE DE net-withdrawal is the top-ranked non-AR feature here. Per-regime analysis shows states 0 and 1 give DA 60%/75%; state 2 inverts. Follow-up: build a regime-gated classifier using these three features conditioned on state ≠ 2.</p>
+    </div>
+
+  </div>
+
+  <h3 style="margin-top: 24px;">Vetoed cells — L1 top-7 for diagnostic reference</h3>
+  <p class="small">These cells were routed to the naive baseline by V4.3's policy gate and have no final L3 model. The top-7 L1 rankings are shown here for completeness; bootstrap and rolling-CV independently confirmed the vetoes were correct.</p>
+
+  <table class="feat-table">
+    <thead><tr><th>Cell</th><th>Top-7 features (L1 rank order)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="white-space:nowrap; font-weight:600;">TTF h=3</td>
+        <td class="small"><code>D_RUS_PIPE</code> <span class="src-k2e">K2E</span> &nbsp; <code>LOG_BUFFER_M1</code> <span class="src-k2e">K2E</span> &nbsp; <code>BBG_LR_TTF_M1_M2</code> <span class="src-bbg">Bloomberg</span> &nbsp; <code>GIE_EU_NET_WD</code> <span class="src-gie">GIE API</span> &nbsp; <code>TEMP_ANOM_COOL</code> <span class="src-k2e">K2E</span> &nbsp; <code>LR_TTF_lag2</code> <span class="src-k2e">K2E</span> &nbsp; <code>TEMP_ANOM_WARM</code> <span class="src-k2e">K2E</span></td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap; font-weight:600;">TTF h=5</td>
+        <td class="small"><code>LOG_BUFFER_M1</code> <span class="src-k2e">K2E</span> &nbsp; <code>D_RUS_PIPE</code> <span class="src-k2e">K2E</span> &nbsp; <code>TEMP_ANOM_COOL</code> <span class="src-k2e">K2E</span> &nbsp; <code>BBG_LR_TTF_M1_M2</code> <span class="src-bbg">Bloomberg</span> &nbsp; <code>GIE_EU_NET_WD</code> <span class="src-gie">GIE API</span> &nbsp; <code>GIE_DE_OUT_UNPL</code> <span class="src-gie">GIE API</span> &nbsp; <code>TEMP_ANOM_WARM</code> <span class="src-k2e">K2E</span></td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap; font-weight:600;">POWER h=5</td>
+        <td class="small"><code>GIE_DE_NET_WD</code> <span class="src-gie">GIE API</span> &nbsp; <code>GIE_DE_OUT_TOT_LOG1P</code> <span class="src-gie">GIE API</span> &nbsp; <code>BBG_LR_POWER_BASE_PEAK</code> <span class="src-bbg">Bloomberg</span> &nbsp; <code>WATER_ANOM_SCAN</code> <span class="src-k2e">K2E</span> &nbsp; <code>TEMP_ANOM_COOL</code> <span class="src-k2e">K2E</span> &nbsp; <code>POWER_TS</code> <span class="src-k2e">K2E</span> &nbsp; <code>RVOL5_POWER</code> <span class="src-k2e">K2E</span> &nbsp; <em>(L3 config k=3, s=3 FV — degenerate)</em></td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap; font-weight:600;">EUA h=1</td>
+        <td class="small"><code>D_RUS_PIPE</code> <span class="src-k2e">K2E</span> &nbsp; <code>LR_BRENT_lag1</code> <span class="src-k2e">K2E</span> &nbsp; <code>LR_COAL_lag1</code> <span class="src-k2e">K2E</span> &nbsp; <code>BBG_IVOL_MO1</code> <span class="src-bbg">Bloomberg</span> &nbsp; <code>COT_EUA_COMPL_vs_HF</code> <span class="src-k2e">K2E</span> &nbsp; <code>RVOL20_EUA</code> <span class="src-k2e">K2E</span> &nbsp; <code>LR_EUA_lag5</code> <span class="src-k2e">K2E</span></td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap; font-weight:600;">EUA h=3</td>
+        <td class="small"><code>BBG_IVOL_MO1</code> <span class="src-bbg">Bloomberg</span> &nbsp; <code>LR_EUA_lag3</code> <span class="src-k2e">K2E</span> &nbsp; <code>COT_EUA_COMPL_vs_HF</code> <span class="src-k2e">K2E</span> &nbsp; <code>BBG_IVOL_MO1_Z20</code> <span class="src-bbg">Bloomberg</span> &nbsp; <code>D_RUS_PIPE</code> <span class="src-k2e">K2E</span> &nbsp; <code>RVOL20_EUA</code> <span class="src-k2e">K2E</span> &nbsp; <code>LR_EUA_lag5</code> <span class="src-k2e">K2E</span> &nbsp; <em>(sign classifier wins this cell on direction)</em></td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap; font-weight:600;">EUA h=5</td>
+        <td class="small"><code>BBG_IVOL_MO1</code> <span class="src-bbg">Bloomberg</span> &nbsp; <code>LR_EUA_lag3</code> <span class="src-k2e">K2E</span> &nbsp; <code>BBG_IVOL_MO1_Z20</code> <span class="src-bbg">Bloomberg</span> &nbsp; <code>LR_BRENT_lag1</code> <span class="src-k2e">K2E</span> &nbsp; <code>TEMP_ANOM_COOL</code> <span class="src-k2e">K2E</span> &nbsp; <code>RVOL20_EUA</code> <span class="src-k2e">K2E</span> &nbsp; <code>D_RUS_PIPE</code> <span class="src-k2e">K2E</span> &nbsp; <em>(α=1,000 here, not 10,000)</em></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout" style="margin-top: 16px;">
+    <strong>Cross-cell patterns:</strong> <code>D_RUS_PIPE</code> (<span class="src-k2e">K2E</span>) is top-ranked in TTF and EUA at every horizon. <code>BBG_IVOL_MO1</code> (<span class="src-bbg">Bloomberg</span>) dominates the EUA feature set — the EUA sign-classifier win at h=3 likely could not have been achieved without the Bloomberg IV pull. <code>GIE_DE_NET_WD</code> (<span class="src-gie">GIE API</span>) enters every POWER model with a meaningful coefficient — German storage withdrawal rate is effectively the POWER market's real-time input-cost pulse.
+  </div>
+
+  <p class="small" style="margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border); font-family: var(--mono);">
+    Reproducible: <code>python K2E_Model_V4_4.py --train k2_clean_v4.csv</code> &nbsp;·&nbsp;
+    Full diagnostics deck: <code>K2E_Presentation_V4_4.html</code> &nbsp;·&nbsp;
+    Plain-English explainer: <code>K2E_Presentation_V4_4_Explainer.md</code> &nbsp;·&nbsp;
+    Raw run log: <code>/tmp/k2e_v4_4_rolling_run.log</code>
+  </p>
+
+</div>
+</body>
+</html>

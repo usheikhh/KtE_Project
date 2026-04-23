@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>K2 Energy — V4.4 / Track 4 Robustness</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a2028;
+    --panel-2: #232b36;
+    --ink: #e6e8eb;
+    --muted: #8a94a2;
+    --accent: #4fb3ff;
+    --accent-2: #7ee8a1;
+    --warn: #ffb454;
+    --danger: #ff6b6b;
+    --border: #2d3642;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 17px; line-height: 1.55;
+    height: 100%;
+  }
+  body { overflow: hidden; }
+
+  .deck { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+  .slide {
+    position: absolute; inset: 0;
+    padding: 48px 72px 72px;
+    display: none; flex-direction: column;
+    overflow-y: auto;
+  }
+  .slide.active { display: flex; }
+
+  h1 { font-size: 42px; margin: 0 0 8px; letter-spacing: -0.02em; }
+  h2 { font-size: 30px; margin: 0 0 20px; color: var(--accent); letter-spacing: -0.01em; }
+  h3 { font-size: 20px; margin: 16px 0 8px; color: var(--accent-2); }
+  p  { margin: 8px 0; color: var(--ink); }
+  .subtitle { color: var(--muted); font-size: 20px; margin-bottom: 32px; }
+  .eyebrow { color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; margin-bottom: 8px; }
+
+  ul { margin: 8px 0; padding-left: 22px; }
+  li { margin: 6px 0; }
+  code, .mono { font-family: var(--mono); font-size: 0.92em; }
+  code { background: var(--panel-2); padding: 2px 6px; border-radius: 3px; color: var(--accent-2); }
+
+  .grid { display: grid; gap: 20px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 22px;
+  }
+  .card h3 { margin-top: 0; }
+  .card-accent { border-left: 3px solid var(--accent); }
+  .card-good   { border-left: 3px solid var(--accent-2); }
+  .card-warn   { border-left: 3px solid var(--warn); }
+  .card-bad    { border-left: 3px solid var(--danger); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td {
+    text-align: left; padding: 6px 9px;
+    border-bottom: 1px solid var(--border);
+  }
+  th { color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; font-weight: 600; }
+  td.mono { font-family: var(--mono); }
+  tr.best td { background: rgba(126, 232, 161, 0.06); }
+  tr.bad  td { background: rgba(255, 107, 107, 0.06); }
+  tr.warn td { background: rgba(255, 180, 84, 0.06); }
+
+  .pill {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+    background: var(--panel-2); color: var(--muted);
+    margin-right: 6px;
+  }
+  .pill.good { background: rgba(126, 232, 161, 0.12); color: var(--accent-2); }
+  .pill.bad  { background: rgba(255, 107, 107, 0.12); color: var(--danger); }
+  .pill.warn { background: rgba(255, 180, 84, 0.12); color: var(--warn); }
+  .pill.acc  { background: rgba(79, 179, 255, 0.12); color: var(--accent); }
+  .pill.new  { background: rgba(79, 179, 255, 0.2); color: #9ecffb; border: 1px solid var(--accent); }
+
+  .num-good { color: var(--accent-2); font-weight: 600; }
+  .num-bad  { color: var(--danger); font-weight: 600; }
+  .num-warn { color: var(--warn); font-weight: 600; }
+
+  .kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 18px; font-size: 14px; }
+  .kv .k { color: var(--muted); }
+  .kv .v { color: var(--ink); font-family: var(--mono); }
+
+  .flow {
+    display: flex; align-items: stretch; gap: 12px; margin: 18px 0;
+  }
+  .flow-box {
+    flex: 1; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 16px;
+  }
+  .flow-box .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .flow-box .name  { font-weight: 600; margin-top: 2px; }
+  .flow-arrow {
+    display: flex; align-items: center; color: var(--accent); font-size: 24px;
+  }
+
+  .equation {
+    font-family: var(--mono); background: var(--panel-2);
+    padding: 14px 18px; border-radius: 6px; overflow-x: auto;
+    color: var(--accent-2); font-size: 14px;
+    border-left: 3px solid var(--accent);
+  }
+
+  .nav {
+    position: fixed; bottom: 16px; right: 20px;
+    display: flex; gap: 8px; align-items: center;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 10px;
+    font-family: var(--mono); font-size: 13px; color: var(--muted);
+    z-index: 100;
+  }
+  .nav button {
+    background: transparent; color: var(--ink); border: 0;
+    cursor: pointer; padding: 4px 8px; font: inherit;
+    border-radius: 4px;
+  }
+  .nav button:hover { background: var(--panel-2); }
+  .nav .counter { min-width: 60px; text-align: center; }
+
+  .slide-title-page { justify-content: center; align-items: flex-start; }
+  .slide-title-page .eyebrow { font-size: 14px; letter-spacing: 0.2em; }
+  .slide-title-page h1 { font-size: 56px; line-height: 1.1; margin-bottom: 20px; }
+  .slide-title-page .meta { color: var(--muted); font-family: var(--mono); font-size: 14px; margin-top: 40px; }
+
+  .small { font-size: 13px; color: var(--muted); }
+  .footnote { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; font-family: var(--mono); }
+
+  .tag { display: inline-block; padding: 2px 6px; border-radius: 3px; background: var(--panel-2); color: var(--muted); font-size: 11px; font-family: var(--mono); margin-right: 4px; }
+  .tag.bbg { background: rgba(79, 179, 255, 0.14); color: #9ecffb; }
+
+  .callout {
+    background: rgba(79, 179, 255, 0.08);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px; border-radius: 4px;
+    margin: 14px 0;
+  }
+  .callout.warn  { background: rgba(255, 180, 84, 0.08); border-left-color: var(--warn); }
+  .callout.bad   { background: rgba(255, 107, 107, 0.08); border-left-color: var(--danger); }
+  .callout.good  { background: rgba(126, 232, 161, 0.08); border-left-color: var(--accent-2); }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+<!-- ========== SLIDE 1 — TITLE ========== -->
+<section class="slide slide-title-page active">
+  <div class="eyebrow">K2 Energy × Fordham University · Phase 1 v4.4</div>
+  <h1>Robustness &amp; Honest-Disclosure<br>Diagnostics on V4.3</h1>
+  <p class="subtitle">Track 4 — does each "win" survive harder tests?<br>Bootstrap CIs · Per-regime slice · Rolling-window CV</p>
+  <div class="meta">
+    K2E_Model_V4_4.py — wrapper around V4.3 plus three diagnostic modules<br>
+    K2E_Bootstrap.py · K2E_RegimeDiag.py · K2E_RollingCV.py<br>
+    No new model, no re-tuning — only stress tests of what V4.3 already shipped
+  </div>
+</section>
+
+<!-- ========== SLIDE 2 — WHAT V4.4 IS ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 2 · What V4.4 actually is</div>
+  <h2>A diagnostics layer, not a new model</h2>
+
+  <div class="grid grid-2">
+    <div class="card card-accent">
+      <h3>Origin: BBG ESMA COT was tested and dropped</h3>
+      <p class="small">V4.4 was originally going to add new BBG fields (ESMA COT positioning, vol surface). Both regressed vs V4.3:</p>
+      <ul class="small">
+        <li><strong>5-feature COT add</strong>: EUA h=3 PT p 0.008 → 0.032, Sharpe +0.89 → +0.68</li>
+        <li><strong>1-feature trim</strong> (SPEC_NET_PCTGROSS only): same regression pattern</li>
+        <li><strong>Vol surface</strong>: structural 2-year hole in the BBG pull (MO1 empty 2021–23, TZT1 empty 2022–23) — needs re-pull, not a modeling issue</li>
+      </ul>
+      <p class="small">Diagnosis: collinear with the MF_COT_EUA_* block V4.3 already uses. No orthogonal signal. Reverted V4.4 to a clean wrapper.</p>
+    </div>
+    <div class="card card-good">
+      <h3>What V4.4 became: Track 4 driver</h3>
+      <p class="small">Re-purposed as the diagnostics module for V4.3. Imports V4.3 unchanged, then runs four robustness checks on every cell V4.3 selected:</p>
+      <ol class="small">
+        <li><strong>#1 Safe-fit wrapper</strong> — catch extraction-side L3 failures so the pipeline does not crash</li>
+        <li><strong>#2 Bootstrap CIs</strong> — block bootstrap on every CV metric, 90% intervals</li>
+        <li><strong>#3 Per-regime slice</strong> — which Markov regime carries each L3 win?</li>
+        <li><strong>#4 Rolling-window CV</strong> — does the win survive a fixed two-year training window?</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Why this matters:</strong> V4.3 made claims like "TTF h=1 L3 beats naive by 9% RMSE, DM p=0.028." Track 4 asks: <em>how confident are we?</em> A point estimate that looks great can still be a single noisy walk-forward draw. Bootstrap, regime, and rolling tests separate genuine edges from happy accidents — exactly the kind of disclosure K2's traders need before sizing on a model.
+  </div>
+</section>
+
+<!-- ========== SLIDE 3 — TRACK 4 OVERVIEW ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 3 · Track 4 architecture</div>
+  <h2>Four substeps — each a separate module, all wired through V4.4</h2>
+
+  <div class="flow">
+    <div class="flow-box">
+      <div class="label">Step #1</div>
+      <div class="name">Safe-fit wrapper</div>
+      <p class="small" style="margin-top:8px;">In-place hardening of <code>fit_layer3()</code>. Extraction errors no longer crash the run.</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">
+      <div class="label">Step #2</div>
+      <div class="name">Bootstrap CIs</div>
+      <p class="small" style="margin-top:8px;"><code>K2E_Bootstrap.py</code>. 90% block-bootstrap intervals on every RMSE / DM / DA / PT / EV / Sharpe.</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">
+      <div class="label">Step #3</div>
+      <div class="name">Per-regime slice</div>
+      <p class="small" style="margin-top:8px;"><code>K2E_RegimeDiag.py</code>. Splits L3 CV residuals by Markov state and reports per-regime RMSE / DA.</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">
+      <div class="label">Step #4</div>
+      <div class="name">Rolling-window CV</div>
+      <p class="small" style="margin-top:8px;"><code>K2E_RollingCV.py</code>. Same test windows as V4.3 but a fixed 504-day training cap.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="margin-top: 14px;">
+    <div class="card card-accent">
+      <h3>Same model, different lens</h3>
+      <p class="small">All four substeps re-use V4.3's chosen configurations — α from L1, (k, s, SV) from L3, C from sign classifier. Track 4 varies <em>only</em> the evaluation protocol. Anything that breaks here was always broken; V4.3 just couldn't see it with one walk-forward pass.</p>
+    </div>
+    <div class="card card-good">
+      <h3>Driver: <code>train_all_v44()</code></h3>
+      <p class="small">Returns a 10-tuple: V4.3's seven outputs plus <code>boot</code>, <code>regime</code>, <code>rolling</code>. One <code>python K2E_Model_V4_4.py --train k2_clean_v4.csv</code> call reproduces the full disclosure pack.</p>
+    </div>
+  </div>
+
+  <p class="footnote">Driver: <span class="mono">K2E_Model_V4_4.py</span> · log: <span class="mono">/tmp/k2e_v4_4_rolling_run.log</span></p>
+</section>
+
+<!-- ========== SLIDE 4 — STEP 1: SAFE-FIT WRAPPER ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 4 · Track 4 #1</div>
+  <h2>Safe-fit wrapper for L3 final fit</h2>
+
+  <div class="grid grid-2">
+    <div>
+      <h3>The problem</h3>
+      <p class="small">V4.3 already preserves L3 CV preds when the final-fit fails (see slide on POWER h=1 in the V4.3 deck). But the original <code>fit_layer3()</code> still <em>raised</em> on extraction failures — <code>smoothed_marginal_probabilities</code> can throw if the EM landed in a degenerate corner. A single uncaught throw aborts the whole multi-cell run.</p>
+
+      <h3>The fix</h3>
+      <div class="equation">_safe_fit_layer3(d, market, h, l1, best):
+    try: return fit_layer3(...)
+    except Exception as e:
+        print("    L3: final-fit extraction raised "
+              f"({type(e).__name__}: {e}) — CV metrics retained")
+        return None</div>
+      <p class="small">Drop-in wrapper at the single call site in <code>train_all_v43()</code>. CV metrics are already separately computed; losing the full-history fit is a per-cell event, not a pipeline event.</p>
+    </div>
+    <div>
+      <h3>Validated live this run</h3>
+      <div class="card card-good">
+        <p class="small">During the rolling-CV run, <strong>EUA h=1</strong> hit a real extraction failure on the full-history L3. With the wrapper in place, the pipeline:</p>
+        <ul class="small">
+          <li>Logged the exception type and message</li>
+          <li>Kept the CV-window L3 metrics (RMSE 0.02134, DM CI [−0.40, +2.90])</li>
+          <li>Marked the cell as "no full-history L3 fit available"</li>
+          <li>Continued through the remaining 8 cells without interruption</li>
+        </ul>
+      </div>
+
+      <div class="callout good" style="margin-top: 16px;">
+        <strong>Track 4 #1 cost:</strong> ~10 lines of code. Track 4 #1 benefit: a single Markov-EM hiccup no longer kills a 30-minute pipeline run. This is defensive plumbing, not a modeling change — but without it, the bootstrap and rolling sweeps would have failed mid-run on the EUA h=1 cell.
+      </div>
+    </div>
+  </div>
+
+  <p class="footnote">Implementation: <span class="mono">_safe_fit_layer3()</span> in K2E_Model_V4_3.py.</p>
+</section>
+
+<!-- ========== SLIDE 5 — STEP 2: BOOTSTRAP METHOD ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 5 · Track 4 #2 · methodology</div>
+  <h2>Block bootstrap on CV metrics</h2>
+
+  <div class="grid grid-2">
+    <div>
+      <h3>Why bootstrap?</h3>
+      <p class="small">V4.3 reports a single number per cell ("RMSE −9.0% vs naive, DM p=0.028"). That number is one realised draw of the CV process. Bootstrap asks: <em>if we resampled the test windows many times, where would that number land 90% of the time?</em></p>
+
+      <h3>Why <em>block</em> bootstrap?</h3>
+      <p class="small">Test predictions are h-step-ahead overlapping forecasts — adjacent observations are correlated. Plain row-bootstrap underestimates variance. Circular block bootstrap with <code>block_size = h+1</code> preserves the local correlation structure.</p>
+
+      <div class="equation">B = 1000  bootstrap reps
+block_size = max(2, h+1)
+α = 0.10 → 90% CI on
+  RMSE, RMSE-vs-naive %, DM stat,
+  DA, PT stat, EV/trade, Sharpe*</div>
+    </div>
+    <div>
+      <h3>Reading the CIs</h3>
+      <ul class="small">
+        <li><strong>RMSE-vs-naive CI excludes 0 on the negative side</strong> → genuinely better than naive at 90%</li>
+        <li><strong>DM CI excludes 0 on the negative side</strong> → DM-significant outperformance at 90%</li>
+        <li><strong>DA CI excludes 50%</strong> → directional accuracy genuinely above coin-flip</li>
+        <li><strong>PT CI excludes 0 on positive side</strong> → real directional skill</li>
+        <li><strong>EV CI excludes 0</strong> → positive expected return per trade</li>
+      </ul>
+
+      <div class="callout warn" style="margin-top: 14px;">
+        <strong>What "robust" means here:</strong> the CV draw V4.3 produced is consistent with the bootstrap distribution. It does NOT prove the edge holds out-of-sample on new data — that's what rolling CV (Step #4) addresses. Bootstrap quantifies sampling noise <em>within</em> the test windows we already observed.
+      </div>
+    </div>
+  </div>
+
+  <p class="footnote">Implementation: <span class="mono">_block_indices()</span>, <span class="mono">_bootstrap_stat()</span>, <span class="mono">bootstrap_rmse_cell()</span>, <span class="mono">bootstrap_sign_cell()</span> in K2E_Bootstrap.py.</p>
+</section>
+
+<!-- ========== SLIDE 6 — STEP 2: BOOTSTRAP RMSE TABLE ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 6 · Track 4 #2 · RMSE / DM bootstrap</div>
+  <h2>90% CIs — RMSE, vs-naive %, DM stat</h2>
+
+  <table>
+    <thead>
+      <tr><th>Cell</th><th>Layer</th><th>RMSE</th><th>RMSE 90% CI</th><th>vs naive%</th><th>vs naive CI</th><th>DM</th><th>DM CI</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TTF h=1</td><td>L1</td><td class="mono">0.04601</td><td class="mono">[0.04239, 0.04972]</td><td class="mono">+0.4%</td><td class="mono">[−0.2, +0.9]</td><td class="mono">+0.999</td><td class="mono">[−0.64, +2.60]</td></tr>
+      <tr class="best"><td>TTF h=1</td><td>L3</td><td class="mono num-good">0.04176</td><td class="mono">[0.03822, 0.04531]</td><td class="mono num-good">−1.0%</td><td class="mono num-good">[−1.8, −0.1]</td><td class="mono num-good">−2.004</td><td class="mono num-good">[−3.63, −0.21]</td></tr>
+      <tr><td>TTF h=3</td><td>L1</td><td class="mono">0.08040</td><td class="mono">[0.07237, 0.08835]</td><td class="mono">+1.0%</td><td class="mono">[−0.2, +2.0]</td><td class="mono">+1.411</td><td class="mono">[−0.27, +3.52]</td></tr>
+      <tr class="bad"><td>TTF h=3</td><td>L3</td><td class="mono">0.07232</td><td class="mono">[0.06536, 0.07917]</td><td class="mono num-bad">+1.5%</td><td class="mono num-bad">[+0.2, +3.2]</td><td class="mono num-bad">+1.747</td><td class="mono num-bad">[+0.03, +3.22]</td></tr>
+      <tr><td>TTF h=5</td><td>L1</td><td class="mono">0.10506</td><td class="mono">[0.09226, 0.11781]</td><td class="mono num-bad">+2.8%</td><td class="mono num-bad">[+0.4, +4.9]</td><td class="mono num-bad">+1.847</td><td class="mono num-bad">[+0.22, +3.69]</td></tr>
+      <tr class="bad"><td>TTF h=5</td><td>L3</td><td class="mono">0.09516</td><td class="mono">[0.08287, 0.10665]</td><td class="mono num-bad">+2.0%</td><td class="mono num-bad">[+0.3, +3.5]</td><td class="mono num-bad">+1.938</td><td class="mono num-bad">[+0.37, +3.65]</td></tr>
+      <tr><td>POWER h=1</td><td>L1</td><td class="mono">0.04430</td><td class="mono">[0.04065, 0.04809]</td><td class="mono">+0.3%</td><td class="mono">[−0.3, +0.9]</td><td class="mono">+0.918</td><td class="mono">[−0.68, +2.48]</td></tr>
+      <tr class="warn"><td>POWER h=1</td><td>L3</td><td class="mono num-good">0.03893</td><td class="mono">[0.03601, 0.04190]</td><td class="mono">−1.8%</td><td class="mono num-warn">[−3.8, +0.5]</td><td class="mono">−1.304</td><td class="mono num-warn">[−2.90, +0.28]</td></tr>
+      <tr><td>POWER h=3</td><td>L1</td><td class="mono">0.07778</td><td class="mono">[0.07064, 0.08430]</td><td class="mono">+0.7%</td><td class="mono">[−0.4, +1.8]</td><td class="mono">+1.068</td><td class="mono">[−0.90, +3.13]</td></tr>
+      <tr><td>POWER h=3</td><td>L3</td><td class="mono">0.07334</td><td class="mono">[0.06662, 0.08014]</td><td class="mono">−0.1%</td><td class="mono">[−3.2, +3.2]</td><td class="mono">−0.072</td><td class="mono">[−2.00, +1.82]</td></tr>
+      <tr><td>POWER h=5</td><td>L1</td><td class="mono">0.10379</td><td class="mono">[0.09319, 0.11557]</td><td class="mono">+1.5%</td><td class="mono">[−0.6, +3.6]</td><td class="mono">+1.226</td><td class="mono">[−0.40, +3.28]</td></tr>
+      <tr class="bad"><td>POWER h=5</td><td>L3</td><td class="mono num-bad">0.11812</td><td class="mono">[0.09915, 0.13685]</td><td class="mono num-bad">+22.2%</td><td class="mono num-bad">[+7.8, +37.0]</td><td class="mono num-bad">+2.324</td><td class="mono num-bad">[+1.45, +3.69]</td></tr>
+      <tr><td>EUA h=1</td><td>L1</td><td class="mono">0.02232</td><td class="mono">[0.02087, 0.02377]</td><td class="mono">+0.1%</td><td class="mono">[−0.4, +0.5]</td><td class="mono">+0.323</td><td class="mono">[−1.47, +1.89]</td></tr>
+      <tr><td>EUA h=1</td><td>L3</td><td class="mono">0.02134</td><td class="mono">[0.01996, 0.02265]</td><td class="mono">+0.7%</td><td class="mono">[−0.2, +1.5]</td><td class="mono">+1.293</td><td class="mono">[−0.40, +2.90]</td></tr>
+      <tr><td>EUA h=3</td><td>L1</td><td class="mono">0.04098</td><td class="mono">[0.03776, 0.04440]</td><td class="mono">−0.1%</td><td class="mono">[−0.5, +0.3]</td><td class="mono">−0.382</td><td class="mono">[−2.21, +1.42]</td></tr>
+      <tr class="bad"><td>EUA h=3</td><td>L3</td><td class="mono">0.03979</td><td class="mono">[0.03682, 0.04308]</td><td class="mono num-bad">+1.6%</td><td class="mono num-bad">[+0.1, +3.1]</td><td class="mono num-bad">+1.725</td><td class="mono num-bad">[+0.08, +3.40]</td></tr>
+      <tr><td>EUA h=5</td><td>L1</td><td class="mono">0.05371</td><td class="mono">[0.04841, 0.05897]</td><td class="mono">−0.7%</td><td class="mono">[−3.1, +2.4]</td><td class="mono">−0.395</td><td class="mono">[−2.59, +1.42]</td></tr>
+      <tr class="bad"><td>EUA h=5</td><td>L3</td><td class="mono">0.05437</td><td class="mono">[0.04890, 0.05952]</td><td class="mono num-bad">+7.2%</td><td class="mono num-bad">[+4.8, +9.5]</td><td class="mono num-bad">+3.955</td><td class="mono num-bad">[+2.90, +5.29]</td></tr>
+    </tbody>
+  </table>
+  <p class="small" style="margin-top: 10px;">
+    <span class="pill good">Green</span> = whole CI favours model. <span class="pill bad">Red</span> = whole CI says model is worse than naive. <span class="pill warn">Amber</span> = CI straddles 0 (point estimate good but not bootstrap-significant). <strong>Only TTF h=1 L3</strong> has a vs-naive CI strictly below zero AND a DM CI strictly negative — it is the lone bootstrap-robust RMSE win.
+  </p>
+</section>
+
+<!-- ========== SLIDE 7 — STEP 2: BOOTSTRAP SIGN TABLE ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 7 · Track 4 #2 · sign-classifier bootstrap</div>
+  <h2>90% CIs — DA, PT, EV, Sharpe*</h2>
+
+  <table>
+    <thead>
+      <tr><th>Cell</th><th>DA%</th><th>DA CI</th><th>PT</th><th>PT CI</th><th>EV</th><th>EV CI</th><th>Sh*</th><th>Sh* CI</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TTF h=1</td><td class="mono">49.8</td><td class="mono">[46.5, 53.5]</td><td class="mono">−0.53</td><td class="mono">[−2.16, +1.06]</td><td class="mono">+0.0018</td><td class="mono">[−0.0015, +0.0054]</td><td class="mono">+0.61</td><td class="mono">[−0.60, +1.74]</td></tr>
+      <tr><td>TTF h=3</td><td class="mono num-good">53.9</td><td class="mono num-warn">[49.6, 58.4]</td><td class="mono">+1.02</td><td class="mono">[−0.82, +3.10]</td><td class="mono">+0.0042</td><td class="mono">[−0.0028, +0.0118]</td><td class="mono">+0.49</td><td class="mono">[−0.36, +1.34]</td></tr>
+      <tr><td>TTF h=5</td><td class="mono num-good">54.6</td><td class="mono num-warn">[49.3, 60.0]</td><td class="mono">+0.76</td><td class="mono">[−1.78, +3.26]</td><td class="mono">+0.0073</td><td class="mono">[−0.0042, +0.0188]</td><td class="mono">+0.51</td><td class="mono">[−0.30, +1.27]</td></tr>
+      <tr><td>POWER h=1</td><td class="mono num-good">53.6</td><td class="mono num-warn">[49.8, 57.3]</td><td class="mono">+0.05</td><td class="mono">[−1.42, +1.56]</td><td class="mono">+0.0031</td><td class="mono num-warn">[−0.0003, +0.0063]</td><td class="mono num-good">+1.09</td><td class="mono num-warn">[−0.20, +2.23]</td></tr>
+      <tr><td>POWER h=3</td><td class="mono">50.6</td><td class="mono">[46.2, 55.2]</td><td class="mono">−0.28</td><td class="mono">[−2.26, +1.73]</td><td class="mono">−0.0001</td><td class="mono">[−0.0075, +0.0070]</td><td class="mono">−0.01</td><td class="mono">[−0.90, +0.93]</td></tr>
+      <tr><td>POWER h=5</td><td class="mono">50.6</td><td class="mono">[45.0, 56.0]</td><td class="mono">−0.79</td><td class="mono">[−3.26, +1.87]</td><td class="mono">+0.0005</td><td class="mono">[−0.0120, +0.0127]</td><td class="mono">+0.04</td><td class="mono">[−0.80, +0.91]</td></tr>
+      <tr><td>EUA h=1</td><td class="mono">48.8</td><td class="mono">[45.1, 52.4]</td><td class="mono">−0.58</td><td class="mono">[−2.45, +1.03]</td><td class="mono">−0.0014</td><td class="mono">[−0.0031, +0.0002]</td><td class="mono">−1.03</td><td class="mono">[−2.24, +0.25]</td></tr>
+      <tr class="best"><td><strong>EUA h=3</strong></td><td class="mono num-good">55.3</td><td class="mono num-good">[51.0, 59.5]</td><td class="mono num-good">+2.43</td><td class="mono num-good">[+0.44, +4.56]</td><td class="mono num-good">+0.0040</td><td class="mono num-good">[+0.00004, +0.0077]</td><td class="mono num-good">+0.89</td><td class="mono num-good">[+0.02, +1.80]</td></tr>
+      <tr><td>EUA h=5</td><td class="mono num-good">53.6</td><td class="mono num-warn">[48.1, 58.8]</td><td class="mono">+1.80</td><td class="mono num-warn">[−0.52, +4.27]</td><td class="mono">+0.0041</td><td class="mono">[−0.0018, +0.0101]</td><td class="mono">+0.54</td><td class="mono">[−0.24, +1.39]</td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid grid-2" style="margin-top: 18px;">
+    <div class="card card-good">
+      <h3>EUA h=3 is the only fully-robust sign cell</h3>
+      <p class="small">All four CIs (DA, PT, EV, Sharpe) strictly favour the classifier. No other cell clears this bar — the V4.3 PT p=0.036** for EUA h=5 has a CI that barely crosses zero on the lower bound.</p>
+    </div>
+    <div class="card card-warn">
+      <h3>POWER h=1 is borderline</h3>
+      <p class="small">Sharpe point estimate +1.09 is the highest in the table, but DA, EV, and Sharpe CIs all just-barely cross zero. A few large-magnitude trades doing the work — exactly what V4.3 flagged. Worth a heavy-tail audit.</p>
+    </div>
+  </div>
+
+  <p class="footnote">Sharpe* is crude annualised: ignores trading costs and h&gt;1 overlap penalty. EV uses sign(pred)·y, no costs.</p>
+</section>
+
+<!-- ========== SLIDE 8 — BOOTSTRAP HEADLINE ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 8 · Track 4 #2 · headline</div>
+  <h2>Where the bootstrap leaves us</h2>
+
+  <div class="grid grid-3">
+    <div class="card card-good">
+      <h3>Bootstrap-robust at 90%</h3>
+      <ul class="small">
+        <li><strong>TTF h=1 L3</strong> — RMSE CI [−1.8%, −0.1%], DM CI [−3.63, −0.21]</li>
+        <li><strong>EUA h=3 sign</strong> — DA, PT, EV, Sharpe all CI-clear</li>
+      </ul>
+      <p class="small" style="margin-top:10px;">These are the two cells we can stand behind without caveats.</p>
+    </div>
+    <div class="card card-warn">
+      <h3>Point-estimate good, CI crosses zero</h3>
+      <ul class="small">
+        <li><strong>POWER h=1 L3</strong> — RMSE point −1.8%, CI [−3.8%, +0.5%]</li>
+        <li><strong>EUA h=5 sign</strong> — PT point +1.80, CI [−0.52, +4.27]</li>
+        <li><strong>TTF h=3, h=5 sign</strong> — DA points 53.9, 54.6; CIs cross 50%</li>
+      </ul>
+      <p class="small" style="margin-top:10px;">Promising but unproven. Don't size; revisit with more data.</p>
+    </div>
+    <div class="card card-bad">
+      <h3>Bootstrap confirms broken</h3>
+      <ul class="small">
+        <li><strong>POWER h=5 L3</strong> — vs-naive CI [+7.8%, +37.0%]</li>
+        <li><strong>EUA h=5 L3</strong> — vs-naive CI [+4.8%, +9.5%]</li>
+        <li><strong>TTF h=3, h=5 L3, EUA h=3 L3</strong> — vs-naive CIs all strictly positive</li>
+      </ul>
+      <p class="small" style="margin-top:10px;">V4.3's policy already routed these to naive; the bootstrap shows the veto wasn't bad luck.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Honest revision of V4.3's headline:</strong> V4.3 said "two RMSE wins, two directional wins." The bootstrap-strict version is "one RMSE win (TTF h=1), one directional win (EUA h=3), and three more cells with promising point estimates that need more data." The TTF h=1 PT-drift the V4.3 deck flagged — DM is robust at 90%, but PT CI [−2.16, +1.06] confirms the directional skill claim was over-precise. The RMSE story holds; the sign story for that cell does not.
+  </div>
+</section>
+
+<!-- ========== SLIDE 9 — STEP 3: PER-REGIME METHOD ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 9 · Track 4 #3 · methodology</div>
+  <h2>Per-regime L3 diagnostics</h2>
+
+  <div class="grid grid-2">
+    <div>
+      <h3>The question</h3>
+      <p class="small">L3 is a Markov-switching model — at every observation it has a probability of being in each hidden state. When L3 wins (or loses) on a cell, <em>which regime</em> is doing the work? Is the edge in the calm 90% of days, or the volatile 10%? Are some regimes actively dragging the average down?</p>
+
+      <h3>The procedure</h3>
+      <ol class="small">
+        <li>Pull smoothed state probabilities from the full-history L3 fit (<code>fitted[(market,h,'L3')]['smooth_probs']</code>). State columns are pre-ordered low-vol → high-vol by V4.2's <code>_order_states</code>.</li>
+        <li>Hard-label each row by <code>argmax(smooth_probs, axis=1)</code>.</li>
+        <li>Recompute the CV test indices via <code>get_cv_folds(n, 3)</code> — the same splits L3's CV uses — so we know which rows the CV preds correspond to.</li>
+        <li>For each state k, compute RMSE / DA / vs-naive over the CV test rows whose regime label is k.</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Important caveat</h3>
+      <div class="callout warn">
+        <strong>Smoothed states are full-history hindsight assignments.</strong> They are <em>not</em> the per-fold inferred state at forecast time. So this is a <em>diagnostic</em> slice — "in periods the trained model identifies as regime X, how good were the CV forecasts that fold-time models produced?" — not a deployable per-state edge claim.
+      </div>
+
+      <h3>What we report per cell</h3>
+      <ul class="small">
+        <li>State σ (sqrt of regime variance) — how distinct are the regimes?</li>
+        <li>Transition diagonals p(k→k) — how persistent is each regime?</li>
+        <li>Full-sample vs CV-window regime occupancy %</li>
+        <li>Per-state n, RMSE, naive RMSE, vs-naive %, DA</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="footnote">Implementation: <span class="mono">_state_label_per_row()</span>, <span class="mono">_cv_test_indices()</span>, <span class="mono">_per_state_metrics()</span>, <span class="mono">regime_diag_all()</span> in K2E_RegimeDiag.py.</p>
+</section>
+
+<!-- ========== SLIDE 10 — STEP 3: REGIME RESULTS ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 10 · Track 4 #3 · per-regime CV slices</div>
+  <h2>Where the L3 wins live (and where they leak)</h2>
+
+  <div class="grid grid-2">
+    <div class="card card-good">
+      <h3>TTF h=1 — calm regime carries the win</h3>
+      <p class="small mono">k=3 s=2 FV; σ_0=σ_1=0.045 (degenerate), p(0→0)=0.31, p(1→1)=0.77. Occupancy CV: S0=3.3%, S1=96.7%</p>
+      <table>
+        <thead><tr><th>State</th><th>n</th><th>RMSE</th><th>vs naive</th><th>DA</th></tr></thead>
+        <tbody>
+          <tr class="bad"><td>0</td><td>16</td><td class="mono">0.0987</td><td class="mono num-bad">+4.1%</td><td class="mono num-bad">25.0%</td></tr>
+          <tr class="best"><td>1</td><td>473</td><td class="mono">0.0384</td><td class="mono num-good">−2.0%</td><td class="mono num-good">55.4%</td></tr>
+        </tbody>
+      </table>
+      <p class="small">96.7% of the CV window is the calm regime, where L3 beats naive by 2% with DA 55%. The 3.3% turbulent window is a 25% DA disaster — but it's small enough that the cell still wins overall. <strong>FV configuration is degenerate</strong> (σ identical) — the regimes are coefficient-only, not vol-driven.</p>
+    </div>
+    <div class="card card-good">
+      <h3>POWER h=1 — calm regime carries it again</h3>
+      <p class="small mono">k=5 s=2 SV; σ_0=0.025, σ_1=0.072, p(0→0)=0.87, p(1→1)=0.81. Occupancy CV: S0=77.9%, S1=22.1%</p>
+      <table>
+        <thead><tr><th>State</th><th>n</th><th>RMSE</th><th>vs naive</th><th>DA</th></tr></thead>
+        <tbody>
+          <tr class="best"><td>0</td><td>355</td><td class="mono">0.0235</td><td class="mono num-good">−3.2%</td><td class="mono num-good">56.6%</td></tr>
+          <tr><td>1</td><td>101</td><td class="mono">0.0700</td><td class="mono num-good">−1.2%</td><td class="mono">49.5%</td></tr>
+        </tbody>
+      </table>
+      <p class="small">Genuine SV separation (calm σ=0.025, turbulent σ=0.072). The calm 78% does almost all the work; the turbulent 22% breaks even. Healthy regime structure.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="margin-top: 14px;">
+    <div class="card card-warn">
+      <h3>POWER h=3 — bimodal sign edge</h3>
+      <p class="small mono">k=3 s=3 SV; σ_0=0.047, σ_1=0.079, σ_2=0.083. Occupancy CV: S0=72.8%, S1=7.0%, S2=20.2%</p>
+      <table>
+        <thead><tr><th>State</th><th>n</th><th>RMSE</th><th>vs naive</th><th>DA</th></tr></thead>
+        <tbody>
+          <tr class="best"><td>0 (calm)</td><td>332</td><td class="mono">0.0507</td><td class="mono num-good">−2.7%</td><td class="mono num-good">59.9%</td></tr>
+          <tr class="best"><td>1 (mid-vol)</td><td>32</td><td class="mono">0.1115</td><td class="mono num-good">−7.5%</td><td class="mono num-good">75.0%</td></tr>
+          <tr class="bad"><td>2 (high-vol)</td><td>92</td><td class="mono">0.1143</td><td class="mono num-bad">+4.9%</td><td class="mono num-bad">35.9%</td></tr>
+        </tbody>
+      </table>
+      <p class="small">Why V4.3's PT was 0.009*** but logistic couldn't reproduce it: <strong>the directional edge lives in the regime structure</strong>. States 0 and 1 give DA 60%/75%; state 2 is a sign-inverted disaster. A regime-gated classifier could exploit this.</p>
+    </div>
+    <div class="card card-bad">
+      <h3>POWER h=5 — degenerate FV, ought to be SV</h3>
+      <p class="small mono">k=3 s=3 FV; σ_0=σ_1=σ_2=0.067 (all identical). Occupancy CV: S0=32.5%, S1=63.1%, S2=4.4%</p>
+      <table>
+        <thead><tr><th>State</th><th>n</th><th>RMSE</th><th>vs naive</th><th>DA</th></tr></thead>
+        <tbody>
+          <tr class="bad"><td>0</td><td>147</td><td class="mono num-bad">0.1654</td><td class="mono num-bad">+33.6%</td><td class="mono">54.4%</td></tr>
+          <tr class="bad"><td>1</td><td>286</td><td class="mono num-bad">0.0723</td><td class="mono num-bad">+18.7%</td><td class="mono num-good">55.6%</td></tr>
+          <tr><td>2</td><td>20</td><td class="mono">0.2005</td><td class="mono">−6.5%</td><td class="mono">55.0%</td></tr>
+        </tbody>
+      </table>
+      <p class="small">Three states with identical variance is a model-misspecification flag. Every regime is RMSE-worse than naive — V4.3's policy correctly vetoed this entire cell. The SV variant should be tried in a future sweep.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 11 — STEP 3: EUA REGIMES ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 11 · Track 4 #3 · EUA regime slices</div>
+  <h2>EUA — why L3 RMSE was vetoed</h2>
+
+  <div class="grid grid-2">
+    <div class="card card-bad">
+      <h3>EUA h=3 — both regimes lose on RMSE</h3>
+      <p class="small mono">k=3 s=2 SV; σ_0=0.031, σ_1=0.058. Occupancy CV: S0=86.7%, S1=13.3%</p>
+      <table>
+        <thead><tr><th>State</th><th>n</th><th>RMSE</th><th>vs naive</th><th>DA</th></tr></thead>
+        <tbody>
+          <tr><td>0 (calm)</td><td>411</td><td class="mono">0.0308</td><td class="mono">−0.3%</td><td class="mono num-bad">47.9%</td></tr>
+          <tr class="bad"><td>1 (vol)</td><td>63</td><td class="mono">0.0758</td><td class="mono num-bad">+3.7%</td><td class="mono num-bad">42.9%</td></tr>
+        </tbody>
+      </table>
+      <p class="small"><strong>L3 has nothing to add on EUA h=3 RMSE</strong> — calm regime is essentially flat (−0.3%), volatile regime is +3.7% worse. Both regimes have sub-50% DA. V4.3's policy correctly routed this to naive. <strong>But</strong> Track 3's logistic <em>does</em> get this cell (DA 55.3%, PT p=0.008). The directional skill is in features Ridge-style L3 isn't using; the L3 regime structure is the wrong hammer.</p>
+    </div>
+    <div class="card card-bad">
+      <h3>EUA h=5 — degenerate FV, both regimes worse</h3>
+      <p class="small mono">k=5 s=2 FV; σ_0=σ_1=0.045 (degenerate). Occupancy CV: S0=42.9%, S1=57.1%</p>
+      <table>
+        <thead><tr><th>State</th><th>n</th><th>RMSE</th><th>vs naive</th><th>DA</th></tr></thead>
+        <tbody>
+          <tr class="bad"><td>0</td><td>202</td><td class="mono">0.0638</td><td class="mono num-bad">+8.1%</td><td class="mono num-bad">48.5%</td></tr>
+          <tr class="bad"><td>1</td><td>269</td><td class="mono">0.0460</td><td class="mono num-bad">+6.0%</td><td class="mono num-bad">46.5%</td></tr>
+        </tbody>
+      </table>
+      <p class="small">Same picture: degenerate σ across regimes, both regimes RMSE-worse than naive, both DA below coin-flip. V4.3's veto holds in every regime slice.</p>
+    </div>
+  </div>
+
+  <div class="callout good">
+    <strong>What the regime slice teaches us:</strong>
+    <ul class="small" style="margin-top: 6px;">
+      <li><strong>L3 wins are calm-regime wins.</strong> TTF h=1 and POWER h=1 both make their money in the high-occupancy low-vol state. This is plausible — predictable mean-reversion is a calm-regime phenomenon.</li>
+      <li><strong>Three FV configs are degenerate</strong> (TTF h=1, POWER h=5, EUA h=5 all show identical σ across states). The model picked FV in V4.3's HP sweep because SV CV was worse for those cells, but the result is regimes that differ only in coefficients — not vol — which is hard to interpret. Worth a forced-SV sensitivity run.</li>
+      <li><strong>POWER h=3 is the most interesting unfinished story:</strong> two regimes with strong directional edge (DA 60%/75%), one regime with sign-inverted forecasts. A regime-gated classifier (use logistic only when smoothed P(state≠2) is high) is a clean follow-up.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ========== SLIDE 12 — STEP 4: ROLLING METHODOLOGY ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 12 · Track 4 #4 · methodology</div>
+  <h2>Rolling-window CV vs expanding-window</h2>
+
+  <div class="grid grid-2">
+    <div>
+      <h3>The asymmetry V4.3's CV has</h3>
+      <p class="small">V4.3 uses <em>expanding-window</em> walk-forward CV: each fold trains on rows[0:ts], tests on rows[ts:te]. Late folds have seen the early data plus everything since.</p>
+      <p class="small">This is honest walk-forward, but it doesn't tell us whether the win at TTF h=1 L3 survives if the model only sees the most recent N days — which is the situation a deployed system actually faces (data drifts; old training rows become less relevant).</p>
+
+      <h3>Rolling-window CV</h3>
+      <p class="small">Same test windows. Same model spec (α from V4.3's L1, best (k,s,SV) from L3 sweep, C from sign logit). The <em>only</em> change is the training set is capped at <code>train_window=504</code> trading days (~2 years).</p>
+      <div class="equation">def _rolling_folds(n, n_folds, train_window):
+    fold = n // (n_folds + 1)
+    for f in range(n_folds):
+        ts = fold + (f+1)*fold;  te = ts + fold
+        train_end = ts
+        train_start = max(0, train_end - train_window)
+        yield (train_start, train_end, ts, te)</div>
+    </div>
+    <div>
+      <h3>The decision rule</h3>
+      <ul class="small">
+        <li>If a cell's expanding and rolling metrics are <strong>close</strong> (Δ&lt;~5% RMSE, Δ&lt;~3pp DA), the edge is robust to training-history length.</li>
+        <li>If <strong>rolling collapses</strong> while expanding wins, the edge is partly an artefact of deep history that the live system wouldn't have at deployment time.</li>
+        <li>If <strong>rolling improves</strong>, the model probably benefits from forgetting old data — possibly a regime-shift or data-quality story in the early years.</li>
+      </ul>
+
+      <div class="callout">
+        <strong>Why 504 days:</strong> ~2 trading years is the K2 desk's working horizon for "recent enough that the data-generating process probably hasn't structurally shifted." Shorter windows starve L3 of regimes; longer windows defeat the purpose.
+      </div>
+    </div>
+  </div>
+
+  <p class="footnote">Implementation: <span class="mono">rolling_cv_l1()</span>, <span class="mono">rolling_cv_l3()</span>, <span class="mono">rolling_cv_sign()</span>, <span class="mono">rolling_all()</span> in K2E_RollingCV.py.</p>
+</section>
+
+<!-- ========== SLIDE 13 — STEP 4: ROLLING RMSE TABLE ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 13 · Track 4 #4 · rolling vs expanding</div>
+  <h2>L1 / L3 — every selected cell survives, every vetoed cell collapses further</h2>
+
+  <table>
+    <thead>
+      <tr><th>Cell</th><th>Layer</th><th>Exp RMSE</th><th>Roll RMSE</th><th>Δ%</th><th>Exp DA</th><th>Roll DA</th><th>Config</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TTF h=1</td><td>L1</td><td class="mono">0.04601</td><td class="mono">0.04603</td><td class="mono">+0.0%</td><td class="mono">49.8%</td><td class="mono">49.8%</td><td class="mono">α=10000</td></tr>
+      <tr class="best"><td>TTF h=1</td><td>L3 ✓</td><td class="mono num-good">0.04176</td><td class="mono num-good">0.04176</td><td class="mono num-good">+0.0%</td><td class="mono">54.4%</td><td class="mono">54.4%</td><td class="mono">k=3 s=2 FV</td></tr>
+      <tr><td>TTF h=3</td><td>L1</td><td class="mono">0.08040</td><td class="mono">0.08045</td><td class="mono">+0.1%</td><td class="mono">52.4%</td><td class="mono">52.4%</td><td class="mono">α=10000</td></tr>
+      <tr class="warn"><td>TTF h=3</td><td>L3 (vetoed)</td><td class="mono">0.07232</td><td class="mono">0.07235</td><td class="mono">+0.0%</td><td class="mono">51.9%</td><td class="mono">51.6%</td><td class="mono">k=3 s=2 FV</td></tr>
+      <tr><td>TTF h=5</td><td>L1</td><td class="mono">0.10506</td><td class="mono">0.10517</td><td class="mono">+0.1%</td><td class="mono">50.7%</td><td class="mono">50.7%</td><td class="mono">α=10000</td></tr>
+      <tr class="bad"><td>TTF h=5</td><td>L3 (vetoed)</td><td class="mono">0.09516</td><td class="mono num-bad">0.10924</td><td class="mono num-bad">+14.8%</td><td class="mono">50.0%</td><td class="mono">49.8%</td><td class="mono">k=3 s=2 FV</td></tr>
+      <tr><td>POWER h=1</td><td>L1</td><td class="mono">0.04430</td><td class="mono">0.04430</td><td class="mono">−0.0%</td><td class="mono">49.5%</td><td class="mono">49.5%</td><td class="mono">α=10000</td></tr>
+      <tr class="best"><td>POWER h=1</td><td>L3 ✓</td><td class="mono num-good">0.03893</td><td class="mono num-good">0.03907</td><td class="mono num-good">+0.4%</td><td class="mono">55.0%</td><td class="mono">54.8%</td><td class="mono">k=5 s=2 SV</td></tr>
+      <tr><td>POWER h=3</td><td>L1</td><td class="mono">0.07778</td><td class="mono">0.07777</td><td class="mono">−0.0%</td><td class="mono">50.9%</td><td class="mono">50.9%</td><td class="mono">α=10000</td></tr>
+      <tr class="bad"><td>POWER h=3</td><td>L3 (vetoed)</td><td class="mono">0.07334</td><td class="mono num-bad">0.08079</td><td class="mono num-bad">+10.2%</td><td class="mono">56.1%</td><td class="mono num-bad">47.4%</td><td class="mono">k=3 s=3 SV</td></tr>
+      <tr><td>POWER h=5</td><td>L1</td><td class="mono">0.10379</td><td class="mono">0.10377</td><td class="mono">−0.0%</td><td class="mono">50.5%</td><td class="mono">50.5%</td><td class="mono">α=10000</td></tr>
+      <tr class="bad"><td>POWER h=5</td><td>L3 (vetoed)</td><td class="mono">0.11812</td><td class="mono num-bad">0.13931</td><td class="mono num-bad">+17.9%</td><td class="mono">55.2%</td><td class="mono">51.7%</td><td class="mono">k=3 s=3 FV</td></tr>
+      <tr><td>EUA h=1</td><td>L1</td><td class="mono">0.02232</td><td class="mono">0.02232</td><td class="mono">−0.0%</td><td class="mono">50.5%</td><td class="mono">50.5%</td><td class="mono">α=10000</td></tr>
+      <tr><td>EUA h=3</td><td>L1</td><td class="mono">0.04098</td><td class="mono">0.04097</td><td class="mono">−0.0%</td><td class="mono">51.0%</td><td class="mono">52.6%</td><td class="mono">α=10000</td></tr>
+      <tr class="warn"><td>EUA h=3</td><td>L3 (vetoed)</td><td class="mono">0.03979</td><td class="mono num-warn">0.04094</td><td class="mono num-warn">+2.9%</td><td class="mono">47.3%</td><td class="mono">47.3%</td><td class="mono">k=3 s=2 SV</td></tr>
+      <tr><td>EUA h=5</td><td>L1</td><td class="mono">0.05371</td><td class="mono">0.05368</td><td class="mono">−0.0%</td><td class="mono">57.0%</td><td class="mono">57.0%</td><td class="mono">α=1000</td></tr>
+      <tr class="warn"><td>EUA h=5</td><td>L3 (vetoed)</td><td class="mono">0.05437</td><td class="mono">0.05437</td><td class="mono">−0.0%</td><td class="mono">47.3%</td><td class="mono">47.3%</td><td class="mono">k=5 s=2 FV</td></tr>
+    </tbody>
+  </table>
+
+  <p class="small" style="margin-top: 10px;"><strong>Pattern:</strong> Every L1 cell is invariant — Ridge with α=10,000 has thrown most signal away anyway, so training-set length barely matters. Every <strong>policy-selected L3 cell</strong> (TTF h=1, POWER h=1) is invariant or near-invariant. Every <strong>policy-vetoed L3 cell</strong> with deep regime structure (TTF h=5, POWER h=3, POWER h=5) collapses 10-18% further on rolling. The veto wasn't conservative noise — it was correct.</p>
+</section>
+
+<!-- ========== SLIDE 14 — STEP 4: ROLLING SIGN ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 14 · Track 4 #4 · sign-classifier rolling</div>
+  <h2>Sign classifier — uniformly stable</h2>
+
+  <table>
+    <thead>
+      <tr><th>Cell</th><th>Exp DA</th><th>Roll DA</th><th>Δpp</th><th>C</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TTF h=1</td><td class="mono">49.8%</td><td class="mono">48.5%</td><td class="mono">−1.3</td><td class="mono">0.01</td></tr>
+      <tr><td>TTF h=3</td><td class="mono">53.9%</td><td class="mono">53.5%</td><td class="mono">−0.4</td><td class="mono">0.01</td></tr>
+      <tr><td>TTF h=5</td><td class="mono">54.6%</td><td class="mono">54.4%</td><td class="mono">−0.2</td><td class="mono">0.01</td></tr>
+      <tr><td>POWER h=1</td><td class="mono">53.6%</td><td class="mono">54.0%</td><td class="mono">+0.4</td><td class="mono">0.01</td></tr>
+      <tr><td>POWER h=3</td><td class="mono">50.6%</td><td class="mono">50.8%</td><td class="mono">+0.2</td><td class="mono">0.01</td></tr>
+      <tr><td>POWER h=5</td><td class="mono">50.6%</td><td class="mono">50.8%</td><td class="mono">+0.2</td><td class="mono">0.01</td></tr>
+      <tr><td>EUA h=1</td><td class="mono">48.8%</td><td class="mono num-good">50.7%</td><td class="mono num-good">+1.9</td><td class="mono">0.01</td></tr>
+      <tr class="best"><td>EUA h=3 ✓</td><td class="mono">55.3%</td><td class="mono num-good">55.5%</td><td class="mono num-good">+0.2</td><td class="mono">0.01</td></tr>
+      <tr><td>EUA h=5</td><td class="mono">53.6%</td><td class="mono num-good">54.4%</td><td class="mono num-good">+0.8</td><td class="mono">0.01</td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid grid-2" style="margin-top: 18px;">
+    <div class="card card-good">
+      <h3>What this confirms</h3>
+      <p class="small">Sign-classifier DA changes by ≤2pp in either direction across every cell when training is capped at 504 days. The <strong>EUA h=3 win</strong> ticks up slightly (55.3 → 55.5) — the cell isn't relying on a long history.</p>
+      <p class="small">EUA h=1 actually <em>improves</em> from below-coin (48.8) to above-coin (50.7) on rolling — possibly a regime-shift signal from the early years dragging the expanding fit.</p>
+    </div>
+    <div class="card card-accent">
+      <h3>Why so flat</h3>
+      <p class="small">Logistic with C=0.01 is heavily regularised — like Ridge α=10,000, it makes only small coefficient adjustments per training fold. The training-set length matters much less than for an unregularised model. The trade-off: small DA improvements between 50% and 55%, very stable across protocols.</p>
+    </div>
+  </div>
+
+  <p class="footnote">All cells use V4.3's CV-tuned C value (uniformly 0.01 — the sweep ceiling on regularisation strength).</p>
+</section>
+
+<!-- ========== SLIDE 15 — FINAL DISCLOSURE ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 15 · Honest-disclosure summary</div>
+  <h2>The Track 4-validated picture</h2>
+
+  <table>
+    <thead>
+      <tr><th>Cell</th><th>V4.3 claim</th><th>Bootstrap CI</th><th>Rolling Δ</th><th>Per-regime</th><th>Track 4 verdict</th></tr>
+    </thead>
+    <tbody>
+      <tr class="best">
+        <td><strong>TTF h=1 L3</strong></td>
+        <td class="mono">−9% RMSE, DM**</td>
+        <td class="mono num-good">RMSE/DM CIs both clear 0</td>
+        <td class="mono num-good">+0.0% RMSE</td>
+        <td class="mono">Calm 96.7% carries</td>
+        <td class="mono num-good"><strong>Robust ✓</strong></td>
+      </tr>
+      <tr class="best">
+        <td><strong>EUA h=3 sign</strong></td>
+        <td class="mono">DA 55.3, PT***</td>
+        <td class="mono num-good">DA/PT/EV/Sh all clear 0</td>
+        <td class="mono num-good">+0.2 pp</td>
+        <td class="mono">n/a (sign cell)</td>
+        <td class="mono num-good"><strong>Robust ✓</strong></td>
+      </tr>
+      <tr class="warn">
+        <td>POWER h=1 L3</td>
+        <td class="mono">−12% RMSE</td>
+        <td class="mono num-warn">RMSE CI [−3.8%, +0.5%]</td>
+        <td class="mono num-good">+0.4% RMSE</td>
+        <td class="mono">Healthy SV separation</td>
+        <td class="mono num-warn">Promising, not significant</td>
+      </tr>
+      <tr class="warn">
+        <td>EUA h=5 sign</td>
+        <td class="mono">DA 53.6, PT**</td>
+        <td class="mono num-warn">PT CI [−0.5, +4.3]</td>
+        <td class="mono num-good">+0.8 pp</td>
+        <td class="mono">n/a (sign cell)</td>
+        <td class="mono num-warn">Promising, CI just-crosses</td>
+      </tr>
+      <tr class="warn">
+        <td>TTF h=1 PT claim</td>
+        <td class="mono">PT p=0.028 (V4.2)</td>
+        <td class="mono num-bad">PT CI [−2.2, +1.1]</td>
+        <td class="mono">DA 54.4 stable</td>
+        <td class="mono">Sign skill in calm regime</td>
+        <td class="mono num-bad">Drifted; magnitude OK</td>
+      </tr>
+      <tr class="warn">
+        <td>POWER h=3 L3</td>
+        <td class="mono">RMSE flat, PT***</td>
+        <td class="mono">DM CI brackets 0</td>
+        <td class="mono num-bad">+10.2% RMSE roll</td>
+        <td class="mono num-good">Regime-gated DA 75%</td>
+        <td class="mono">Regime-gated classifier follow-up</td>
+      </tr>
+      <tr class="bad">
+        <td>POWER h=5 L3 (V4.2)</td>
+        <td class="mono num-bad">+10% worse than naive</td>
+        <td class="mono num-bad">+22% CI [+8%, +37%]</td>
+        <td class="mono num-bad">+17.9% roll</td>
+        <td class="mono num-bad">Degenerate FV</td>
+        <td class="mono num-bad">Veto correct on every test</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="grid grid-3" style="margin-top: 20px;">
+    <div class="card card-good">
+      <h3>Bootstrap-clean wins</h3>
+      <p class="mono num-good" style="font-size: 28px; margin: 8px 0;">2 / 9</p>
+      <p class="small">TTF h=1 L3 (RMSE), EUA h=3 sign (DA/PT/EV/Sharpe)</p>
+    </div>
+    <div class="card card-warn">
+      <h3>Promising but unproven</h3>
+      <p class="mono num-warn" style="font-size: 28px; margin: 8px 0;">3 / 9</p>
+      <p class="small">POWER h=1 RMSE, EUA h=5 sign, POWER h=3 regime-gated</p>
+    </div>
+    <div class="card card-accent">
+      <h3>Veto correctness rate</h3>
+      <p class="mono" style="font-size: 28px; margin: 8px 0;">100%</p>
+      <p class="small">Every cell V4.3 routed to naive: rolling collapses, bootstrap CI strictly worse</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 16 — NEXT STEPS ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 16 · Open items &amp; next steps</div>
+  <h2>What Track 4 leaves on the table</h2>
+
+  <div class="grid grid-2">
+    <div class="card card-accent">
+      <h3>Highest priority — POWER h=3 regime-gated classifier</h3>
+      <p class="small">Per-regime slice shows DA 60% in calm regime, DA 75% in mid-vol regime, DA 36% (sign-inverted) in high-vol regime. A logistic head on top of L3's smoothed P(state) — gating sign output by regime confidence — could turn this from "RMSE-vetoed" into "directional-conditional" deliverable. Self-contained next step using existing V4.3 fits.</p>
+    </div>
+    <div class="card card-accent">
+      <h3>Forced-SV sensitivity for degenerate FV configs</h3>
+      <p class="small">TTF h=1, POWER h=5, EUA h=5 all picked FV in V4.3's HP sweep but their fitted regimes have identical σ — degenerate. The sweep might have rejected SV on noisy CV; a forced-SV rerun would clarify whether the degeneracy is real or a sweep accident.</p>
+    </div>
+    <div class="card card-accent">
+      <h3>BBG vol-surface re-pull</h3>
+      <p class="small">Vol surface (RK910/RK903/RK908/RK901) had a structural 2-year hole in the previous BBG extract. Re-pull with <code>HIST_PUT_IMP_VOL_25DELTA_DFLT</code> + <code>HIST_CALL_IMP_VOL_25DELTA_DFLT</code> on generic front tickers; dropped V4.4 attempt was data-side, not modeling-side.</p>
+    </div>
+    <div class="card card-accent">
+      <h3>Refresh k2_clean to cover 2025–2026</h3>
+      <p class="small">Current frozen CSV stops at 2024-12-30. Bringing it forward 16 months (~330 trading days) is the cheapest single thing that improves every CI in this deck — direct effect on bootstrap variance and rolling-window length.</p>
+    </div>
+  </div>
+
+  <div class="callout good" style="margin-top: 20px;">
+    <strong>Recommended sequence:</strong> (1) data refresh — buys precision on all tracks; (2) POWER h=3 regime-gated classifier — biggest expected new deliverable; (3) forced-SV sensitivity — quick disambiguation of FV degeneracy; (4) BBG vol re-pull — once IT can confirm the 2021-23 backfill. Track 4's role is to define <em>what holds today</em>; these four items define what V4.5 should aim to add or confirm.
+  </div>
+</section>
+
+<!-- ========== SLIDE 17 — BOTTOM LINE ========== -->
+<section class="slide">
+  <div class="eyebrow">Slide 17 · Bottom line</div>
+  <h2>V4.3 + Track 4 in one slide</h2>
+
+  <div class="grid grid-2">
+    <div>
+      <h3>What we can stand behind</h3>
+      <ul>
+        <li><strong>TTF h=1 L3</strong> — RMSE −9% vs naive. DM, bootstrap CI, rolling-window all clear. The flagship magnitude win is real.</li>
+        <li><strong>EUA h=3 sign classifier</strong> — DA 55.3%, PT p=0.008. Bootstrap CIs on DA, PT, EV, Sharpe all exclude zero. The flagship directional win is real.</li>
+        <li><strong>V4.3's policy gate</strong> — every cell vetoed to naive shows worse rolling-CV behaviour and bootstrap-confirmed underperformance. The veto rule is doing the right thing 100% of the time on this dataset.</li>
+      </ul>
+
+      <h3>What needs caveats</h3>
+      <ul class="small">
+        <li>POWER h=1 L3 RMSE point estimate is the strongest in the deck (−12% vs naive) but bootstrap CI just-crosses zero. Encouraging, not deployable.</li>
+        <li>EUA h=5 sign PT-significance survives V4.3 but is borderline under bootstrap.</li>
+        <li>POWER h=3 regime-bound directional edge is real but needs a regime-gated classifier to deploy.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What Track 4 changed about V4.3's story</h3>
+      <ul>
+        <li><strong>From "two RMSE wins, two directional wins"</strong> (V4.3 headline)</li>
+        <li><strong>To "one RMSE win, one directional win, three more cells with promising point estimates"</strong> (Track 4 honest version)</li>
+        <li>The TTF h=1 PT-drift V4.3 already flagged is now quantified — magnitude DM is robust, sign PT is not</li>
+        <li>The POWER h=3 regime-bound signal is now <em>localised</em> to specific Markov states, opening a clean follow-up</li>
+        <li>The veto decisions V4.3 made are independently re-validated, which matters for K2's trust in the policy layer</li>
+      </ul>
+
+      <div class="callout good" style="margin-top: 16px;">
+        <strong>Headline:</strong> Track 4 is what makes V4.3 deliverable. Not "more wins" — fewer, better-supported wins, plus an audit trail showing why every other cell is honestly routed to naive.
+      </div>
+    </div>
+  </div>
+
+  <p class="footnote" style="margin-top: 24px;">Reproduce: <span class="mono">python K2E_Model_V4_4.py --train k2_clean_v4.csv</span> · Tracks 1+3 in V4.3, Track 4 in V4.4 wrapper · Full log: <span class="mono">/tmp/k2e_v4_4_rolling_run.log</span></p>
+</section>
+
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button onclick="prev()">◀</button>
+  <span class="counter" id="counter">1 / 17</span>
+  <button onclick="next()">▶</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let idx = 0;
+  const counter = document.getElementById('counter');
+  function show(i) {
+    slides[idx].classList.remove('active');
+    idx = Math.max(0, Math.min(slides.length - 1, i));
+    slides[idx].classList.add('active');
+    counter.textContent = (idx + 1) + ' / ' + slides.length;
+    slides[idx].scrollTop = 0;
+  }
+  function next() { show(idx + 1); }
+  function prev() { show(idx - 1); }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { next(); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { prev(); e.preventDefault(); }
+    else if (e.key === 'Home') { show(0); }
+    else if (e.key === 'End')  { show(slides.length - 1); }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,48 @@
+the tests help you decide whether you should model the series as
+	stationary around a constant
+	stationary around a deterministic trend
+	difference stationary (unit root, needs differencing)
+They do not usually tell you to “discover an arbitrary function” for the deterministic part. In practice you choose a simple deterministic structure (constant, linear trend, seasonal dummies) because otherwise you can overfit and create misleading inference.
+How this looks in a natural gas price project
+Step 1: Decide what series you are modeling
+Most price levels behave like nonstationary processes.
+A common move is to work with log price p_t=\ln\funcapply(P_t), then either
+	returns: \Delta p_t
+	differences: \Delta P_t
+depending on your goal.
+Step 2: Choose which deterministic terms are plausible
+Common deterministic pieces:
+	constant (drift)
+	linear trend (rarely a good long run description for commodity prices, but you can test it)
+	seasonality (very relevant for natural gas, often monthly or weekly patterns)
+Step 3: Run ADF and KPSS in matched versions
+You generally run them in pairs because their nulls are opposite.
+	ADF with constant, KPSS level stationarity
+	ADF with constant + trend, KPSS trend stationarity
+Interpretation patterns:
+	ADF fails to reject unit root AND KPSS rejects stationarity
+Strong evidence you need differencing (unit root behavior)
+	ADF rejects unit root AND KPSS fails to reject stationarity
+Strong evidence the series is stationary (around level or trend, depending on spec)
+Step 4: Pick the transformation based on results
+Case A: unit root in levels (common for prices)
+Work with \Delta p_tor \Delta P_t. Then test stationarity again on the transformed series.
+Case B: trend stationary
+Model y_tas trend + stationary residual:
+y_t=\alpha+\beta t+x_t,x_t\mathrm{\ stationary}
+
+Equivalent workflow: regress y_ton 1t, take residuals {\hat{x}}_t, then model {\hat{x}}_twith ARMA.
+Case C: stationary around constant
+Model directly with ARMA (or ARX if you have predictors).
+Step 5: Where the “function fitting” idea fits
+If by “functor” you mean “a function that captures deterministic structure,” the standard options are:
+	constant and/or linear trend
+	seasonal dummies (monthly indicators)
+	known calendar effects (day of week)
+	deterministic break dummies if you know there’s a regime change date
+Beyond that, the deterministic part is usually handled by adding relevant explanatory variables instead of forcing a flexible time function.
+Step 6: After stationarity, you fit a model for prediction
+If you end up with a stationary target series, typical choices:
+	ARMA or ARIMA (if you differenced)
+	ARIMAX/ARX (if you have exogenous predictors like storage, weather proxies, etc.)
+	GARCH type volatility models if you care about variance forecasts, because returns can be uncorrelated but still show volatility clustering

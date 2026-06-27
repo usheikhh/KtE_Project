@@ -1,0 +1,31 @@
+# ── Data (proprietary: Bloomberg / K2E — never commit) ──
+data/
+*.csv
+*.xlsx
+*.xls
+*.parquet
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+.ipynb_checkpoints/
+
+# ── Virtual environments ──
+.venv/
+.venv-k2e/
+venv/
+env/
+
+# ── Secrets ──
+.env
+!.env.example
+
+# ── OS / editor ──
+.DS_Store
+.AppleDouble
+.Rhistory
+*~
+.idea/
+.vscode/
